@@ -9,12 +9,6 @@ const bodyParser = require('body-parser');
 const messagingRoutes = require('./v4/message/routes/notifications');
 
 
-// mongoose.connect('mongodb+srv://naptoon123:' + process.env.MP + '@cluster0-u8m3k.mongodb.net/pushes?retryWrites=true&w=majority',
-// {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true
-// }
-// );
 
 
 app.use(morgan('dev'));
