@@ -31,7 +31,7 @@ app.use((req,res,next) => {
 app.use('/message', messagingRoutes);
 
 // Route to handle the resquest on the ExpandWorker
-app.use('/expandWoker',expandWorkerRoute);
+app.use('/expandWorker',expandWorkerRoute);
 
 app.use((req,res,next) => {
     const error  = new Error('Verify the END-POINT or the request Method (POST)');

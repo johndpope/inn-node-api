@@ -18,6 +18,11 @@ var con = mysql.createConnection({
 //     });
 // })
 
+router.post('/',(req,res,next)=>{
+    res.status(200).json({
+        message:"Sucesso uai"
+    })
+});
 
 router.post('/v1',(req,res0,next)=>{
 
@@ -171,7 +176,7 @@ router.post('/v1',(req,res0,next)=>{
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
                                     };
-                                    axios.post('http://inn-node-api/v4/message',
+                                    axios.post('https://inn-dispatcher.herokuapp.com/message',
                                         {sendPushRequest}
                                     )
                                     .then(response => {
@@ -356,7 +361,7 @@ router.post('/v3',(req,ress,next)=>{
                                                 
                                                 console.log(sendPushRequest);
                                                 console.log("sending message to dispatcher....");
-                                                axios.post('http://inn-node-api/v4/message',
+                                                axios.post('/message',
                                                   {sendPushRequest}
                                                 )
                                                 .then(response => {
