@@ -4,7 +4,7 @@ module.exports = {
    name: "inn-node-api",
    script: "./app.js",
    env: {
-    PORT: 3000,
+    PORT: 80,
     NODE_ENV: "production"
    }
   }
