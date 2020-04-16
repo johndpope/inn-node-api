@@ -18,7 +18,7 @@ module.exports = {
    repo: "https://viniciusdepaula:v1n1c1us@bitbucket.org/inngage/inn-node-api.git",
    path: "/home/ubuntu/app/inn-node-api",
    "post-deploy":
-    "npm install && pm2 startOrRestart && pm2 start npm -- reload ecosystem.config.js"
+      "npm install && pm2 startOrRestart ecosystem.config.js"
   }
  }
 };
