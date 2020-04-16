@@ -4,8 +4,8 @@
   "description": "this is the api v4 , includes dispatcher , expand worker , queue service  and more",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "stop": "node server.stop.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,10 @@
     "https": "^1.0.0",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
-    "nodemon": "^2.0.3"
+    "nodemon": "^2.0.3",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "pm2": "^4.2.3"
   }
 }
