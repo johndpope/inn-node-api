@@ -44,7 +44,7 @@ router.post('/v1',(req,res0,next)=>{
 
     let app_config,not_data,user_data,user_customfields;
 
-    con.query(`SELECT ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
+    con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
         if(err) throw err;
         app_config = res[0];
         user_data = res[0];
@@ -92,9 +92,11 @@ router.post('/v1',(req,res0,next)=>{
                                     OR body LIKE '%{{%}}%'
                                     OR title LIKE '%:%:%'
                                     OR title LIKE '%|*%*|%'
-                                    OR title LIKE '%{{%}}%');`,  (err6,res6)=>{
+                                    OR title LIKE '%{{%}}%');`,  async (err6,res6)=>{
                                     if(err6) throw err6;
-                                        
+
+                                    var is_prod = await getIsProd(app_id);
+
                                     var per_flag = 1;
                                     if(res6.length > 0)per_flag = 1;
                                     per_flag = JSON.stringify(per_flag);
@@ -150,11 +152,12 @@ router.post('/v1',(req,res0,next)=>{
                                             },
                                             app: {
                                                 app_id: app_id,
+                                                is_prod: is_prod,
                                                     apns :{
                                                         apple_cert_file: app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
                                                         apple_cert_name: app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
                                                         apple_cert_pass: app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                        apns_topic:""
+                                                        apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
                                                     },
                                                     fcm:{
                                                         google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
@@ -166,12 +169,15 @@ router.post('/v1',(req,res0,next)=>{
                                             subscriber: {
                                                 subscriber_id: subscriber_id,
                                                 registration: user_data.registration,
+                                                platform_id: user_data.platform_id,
                                                 phone: ""
                                             },
                                             custom_fields,
 
                                             events
                                         }
+                                        
+                                        updateStatus3TO4(app_id );
 
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
@@ -224,7 +230,7 @@ router.post('/v3',(req,ress,next)=>{
     
                 let app_config,not_data,user_data,user_customfields;
 
-                con.query(`SELECT ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
+                con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
                     if(err) throw err;
                     app_config = res[0];
             
@@ -276,6 +282,8 @@ router.post('/v3',(req,ress,next)=>{
                                                 OR title LIKE '%{{%}}%');`, async (err6,res6)=>{
                                                 if(err6) throw err6;
 
+                                                var is_prod = await getIsProd(app_id);
+
                                                 var per_flag = 0;
                                                 if(res6.length > 0)per_flag = 1;
                                                 per_flag = JSON.stringify(per_flag);
@@ -298,11 +306,12 @@ router.post('/v3',(req,ress,next)=>{
                                                     },
                                                     app: {
                                                         app_id: app_id,
+                                                        is_prod: is_prod,
                                                             apns :{
                                                                 apple_cert_file: app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
                                                                 apple_cert_name: app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
                                                                 apple_cert_pass: app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                                apns_topic:""
+                                                                apns_topic: app_config.apns_topic != null ? app_config.apns_topic:"",
                                                             },
                                                             fcm:{
                                                                 google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
@@ -314,6 +323,7 @@ router.post('/v3',(req,ress,next)=>{
                                                     subscriber: {
                                                         subscriber_id: subscriber_id,
                                                         registration: user_data.registration,
+                                                        platform_id: user_data.platform_id,
                                                         phone: ""
                                                     },
                                                     custom_fields,
@@ -358,10 +368,10 @@ router.post('/v3',(req,ress,next)=>{
                                         }
                                                 };
 
-                                                
-                                                console.log(sendPushRequest);
-                                                console.log("sending message to dispatcher....");
-                                                axios.post('/message',
+                                                updateStatus3TO4(app_id);
+                                                // console.log(sendPushRequest);
+                                                // console.log("sending message to dispatcher....");
+                                                axios.post('https://inn-dispatcher.herokuapp.com/message',
                                                   {sendPushRequest}
                                                 )
                                                 .then(response => {
@@ -391,6 +401,28 @@ router.post('/v3',(req,ress,next)=>{
 })
 
 
+async function getIsProd(app_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT is_production FROM app WHERE id = ${app_id};`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+
+    var ans = Promise.resolve(sql);
+    return sql[0].is_production;
+}
+
+async function updateStatus3TO4(CM_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`UPDATE control_message set status = 4 where status = 3 AND id_control_message = ${CM_id}`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    console.log("control_message "+CM_id+" updated");
+    var r = Promise.resolve(sql);
+}
 
 
 module.exports = router;
