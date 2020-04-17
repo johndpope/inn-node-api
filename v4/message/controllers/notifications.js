@@ -2,7 +2,7 @@ const axios = require('axios').default;
 const apn = require('apn');
 const https = require('https');
 const fs = require('fs');
-
+const con = require('../connection/DBconnection');
 let isEmpty = (val) => {
     let typeOfVal = typeof val;
     switch(typeOfVal){
@@ -20,11 +20,23 @@ let isEmpty = (val) => {
             return val === '' || val === undefined;
     }
 };
-
+let getDateTime = () =>{
+    var today = new Date();
+    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    var dateTime = date+' '+time;
+    return dateTime
+}
 exports.send2Fcm = (req,res,next) => {
     let newBody ;
     let newTitle ;
-
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let p_platform_id  = 1;
+    let p_status_id  = "";
+    let p_status_details  = "";
+    let p_sent_at  = "";
+    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
     if (!req.res.locals.customizedBody)
     {
         newTitle = req.body.sendPushRequest.control_message.title;
@@ -79,11 +91,51 @@ exports.send2Fcm = (req,res,next) => {
          message
      )
       .then(function (response) {
-                res.status(200).json({
-                    SendPushResponse:response.data
-                    });
+
+          if(response.data.success===1)
+          {    p_status_id = response.data.success;
+              p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+              //saveResponse2DB(status_id,message_status);
+              res.status(200).json({
+                  SendPushResponse:{
+                      //success : response.data,
+                      //failure : response.data.failure,
+                      status_details:p_status_details
+                  }
+
+
+              });
+
+          } else if (response.data.failure===1 && response.data.results[0]["error"] ==="NotRegistered"){
+              p_status_id = '3';
+              p_status_details=response.data.results[0]["error"];
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+              res.status(200).json({
+                  SendPushResponse:{
+
+                      status_details:response.data.results[0]["error"],
+                      status_id : p_status_id
+                  }
+              });
+
+          } else if (response.data.failure===1 && response.data.results[0]["error"] !=="NotRegistered")
+              {
+                  p_status_id = '9';
+                  p_status_details=response.data.results[0]["error"];
+                  saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+                  res.status(200).json({
+                      SendPushResponse:{
+                          status_details:response.data.results[0]["error"],
+                          status_id : p_status_id
+                      }
+                  });
+          }
                 })
       .catch(function (err) {
+          p_status_id = '99';
+          p_status_details=err;
+          saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
          res.status(200).json({
              err
              });
@@ -457,4 +509,24 @@ exports.send2APNS = (req,res,next) => {
 
 }
 
+let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_sent_at,p_control_message_id) =>{
+    console.log(p_id);
+    console.log(p_subscriber_id);
+    console.log(p_title);
+    console.log(p_body);
+    console.log(p_platform_id);
+    console.log(p_status_id);
+    console.log(p_message_status);
+    console.log(getDateTime());
+    console.log(p_control_message_id);
+    // con.connect((err)=>{
+    //     if(err)throw err;
+    //     var responseQuery ="INSERT INTO message_responses_v1 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (p_id, p_subscriber_id, p_title, p_body,p_platform_id, p_status_id, p_status_details, p_sent_at, p_control_message_id)";
+    //     con.query(responseQuery,(Qerr,Qres)=> {
+    //         if (Qerr) throw Qerr;
+    //
+    //     })
+    //     console.log("connected!");
+    // });
 
+};

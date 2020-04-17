@@ -4,7 +4,7 @@
   "description": "this is the api v4 , includes dispatcher , expand worker , queue service  and more",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "stop": "node server.stop.js"
   },
   "repository": {
