@@ -3,13 +3,16 @@ const app  = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 //const mongoose = require('mongoose');
-
+const router = require("routes");
 
 
 const messagingRoutes = require('./v4/message/routes/notifications');
 
 const expandWorkerRoute = require('./v4/message/routes/expandWorker')
 
+//app.use('/', router);
+
+//app.use('/api', router);
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -28,13 +31,14 @@ app.use((req,res,next) => {
 });
 
 // Route to handle the request on the messaging.
-app.use('/message', messagingRoutes);
+app.use('/api/message', messagingRoutes);
 
 // Route to handle the resquest on the ExpandWorker
 app.use('/expandWorker',expandWorkerRoute);
 
 app.use((req,res,next) => {
     const error  = new Error('Verify the END-POINT or the request Method (POST)');
+    console.log('%O', req);
     error.status=401;
     next(error);
 });
