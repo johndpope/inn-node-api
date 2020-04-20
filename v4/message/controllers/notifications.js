@@ -3,6 +3,7 @@ const apn = require('apn');
 const https = require('https');
 const fs = require('fs');
 const con = require('../connection/DBconnection');
+
 let isEmpty = (val) => {
     let typeOfVal = typeof val;
     switch(typeOfVal){
@@ -95,7 +96,7 @@ exports.send2Fcm = (req,res,next) => {
           if(response.data.success===1)
           {    p_status_id = response.data.success;
               p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
               //saveResponse2DB(status_id,message_status);
               res.status(200).json({
                   SendPushResponse:{
@@ -110,7 +111,7 @@ exports.send2Fcm = (req,res,next) => {
           } else if (response.data.failure===1 && response.data.results[0]["error"] ==="NotRegistered"){
               p_status_id = '3';
               p_status_details=response.data.results[0]["error"];
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
               res.status(200).json({
                   SendPushResponse:{
 
@@ -509,7 +510,7 @@ exports.send2APNS = (req,res,next) => {
 
 }
 
-let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_sent_at,p_control_message_id) =>{
+let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
     console.log(p_id);
     console.log(p_subscriber_id);
     console.log(p_title);
@@ -519,13 +520,23 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
     console.log(p_message_status);
     console.log(getDateTime());
     console.log(p_control_message_id);
+    let sent_at = getDateTime();
+    con.getConnection(function (err,connect) {
+       //if(err) throw err ;$
+        con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+            //console.log(res0);
+            if (err0) throw err0;
+            console.log('The solution is: ',  result.affectedRows);
+        });
+        console.log("connected !!!!");
+    });
     // con.connect((err)=>{
     //     if(err)throw err;
-    //     var responseQuery ="INSERT INTO message_responses_v1 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (p_id, p_subscriber_id, p_title, p_body,p_platform_id, p_status_id, p_status_details, p_sent_at, p_control_message_id)";
-    //     con.query(responseQuery,(Qerr,Qres)=> {
-    //         if (Qerr) throw Qerr;
-    //
-    //     })
+    //     // var responseQuery ="INSERT INTO message_responses_v1 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (p_id, p_subscriber_id, p_title, p_body,p_platform_id, p_status_id, p_status_details, p_sent_at, p_control_message_id)";
+    //     // con.query(responseQuery,(Qerr,Qres)=> {
+    //     //     if (Qerr) throw Qerr;
+    //     //
+    //     // })
     //     console.log("connected!");
     // });
 
