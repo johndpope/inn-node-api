@@ -54,7 +54,8 @@ router.post('/v1',(req,res0,next)=>{
                             AND se.subscriber_id = ${subscriber_id}
                             AND sed.id_event_data = aed.id
                             AND sed.Id_subscriber_event = se.id
-                            AND ae.is_active = 1;`, (err5,res5)=>{
+                            AND ae.is_active = 1
+                            ORDER BY created_in ASC;`, (err5,res5)=>{
                                 if(err5) throw err5;
                                 var events = {};
                                 Object.keys(res5).forEach(function(key){
@@ -156,15 +157,15 @@ router.post('/v1',(req,res0,next)=>{
                                             subscriber: {
                                                 subscriber_id: subscriber_id,
                                                 registration: user_data.registration,
-                                                platform_id: JSON.stringify(user_data.platform_id),
-                                                phone: ""
+                                                phone: "",
+                                                platform_id: JSON.stringify(user_data.platform_id)
                                             },
                                             custom_fields,
 
                                             events
                                         }
                                         
-                                        updateStatus3TO4(app_id );
+                                        await updateStatus3TO4(app_id );
                                         // console.log("json = %j",sendPushRequest);
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
