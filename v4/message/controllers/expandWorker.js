@@ -180,7 +180,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 });
                                             })
                                     .catch( err => {
-                                                console.log("Error sending message to Dispatcher... Details : ".err);
+                                                console.log("Error sending message to Dispatcher... Details : "+err);
                                                 res0.status(200).json({ 
                                                     teste:err.SendPushResponse,
                                                     error:err
@@ -362,7 +362,7 @@ router.post('/v3',(req,ress,next)=>{
                                         }
                                                 };
 
-                                                updateStatus3TO4(app_id);
+                                                await updateStatus3TO4(app_id);
                                                 // console.log(sendPushRequest);
                                                 console.log("sending message to dispatcher....");
                                                 axios.post('https://send.inngage.com.br/api/message',
