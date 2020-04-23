@@ -3,12 +3,12 @@ const app  = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 //const mongoose = require('mongoose');
-const router = require("routes");
+
 
 
 const messagingRoutes = require('./v4/message/routes/notifications');
 
-const expandWorkerRoute = require('./v4/message/routes/expandWorker')
+const expandWorkerRoute = require('./v4/message/routes/expandWorker');
 
 //app.use('/', router);
 

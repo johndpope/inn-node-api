@@ -108,7 +108,7 @@ exports.send2Fcm = (req,res,next) => {
 
               });
 
-          } else if (response.data.failure===1 && response.data.results[0]["error"] ==="NotRegistered"){
+          } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
               p_status_id = '3';
               p_status_details=response.data.results[0]["error"];
               saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
@@ -120,11 +120,11 @@ exports.send2Fcm = (req,res,next) => {
                   }
               });
 
-          } else if (response.data.failure===1 && response.data.results[0]["error"] !=="NotRegistered")
+          } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
               {
                   p_status_id = '9';
                   p_status_details=response.data.results[0]["error"];
-                  saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
+                  saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
                   res.status(200).json({
                       SendPushResponse:{
                           status_details:response.data.results[0]["error"],
@@ -135,11 +135,35 @@ exports.send2Fcm = (req,res,next) => {
                 })
       .catch(function (err) {
           p_status_id = '99';
-          p_status_details=err;
-          saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_sent_at,p_control_message_id);
-         res.status(200).json({
-             err
-             });
+
+          if(err.message === "Request failed with status code 401")
+          {
+              p_status_details="Request failed with status code 401 , Verify the FCM API key.";
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+              res.status(200).json({
+                  SendPushResponse:{
+                      Error:err.message,
+                      Reason:'Verify the FCM API key.',
+                      Key:req.body.sendPushRequest.app.fcm.google_api_key,
+                      status_id:p_status_id
+                  }
+              });
+          } else
+          {
+              p_status_details=err.stack;
+              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+              res.status(200).json({
+                  SendPushRespnse:{
+                      Error:err.message,
+                      Details:err.stack,
+                      Reason:p_status_details,
+                      status_id:p_status_id
+                  }
+              });
+          }
+          //console.log("log before saving :" + p_control_message_id);
+
+
         //console.log(err.data);
 
 
@@ -226,7 +250,6 @@ exports.checkEvents = (req,res,next) => {
     }
 
 };
-
 exports.checkEmojis = (req,res,next) => {
     let newEmojiBody ;
     let newEmojiTitle ;
@@ -271,8 +294,6 @@ exports.checkEmojis = (req,res,next) => {
     req.res.locals.customizedBody = newEmojiBody ;
     next();
 };
-
-
 exports.checkRequestFileds = (req,res,next) => {
     let SendPushResponse =  {};
     if (isEmpty(req.body))
@@ -511,33 +532,53 @@ exports.send2APNS = (req,res,next) => {
 }
 
 let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
-    console.log(p_id);
-    console.log(p_subscriber_id);
-    console.log(p_title);
-    console.log(p_body);
-    console.log(p_platform_id);
-    console.log(p_status_id);
-    console.log(p_message_status);
-    console.log(getDateTime());
-    console.log(p_control_message_id);
+    // console.log(p_id);
+    // console.log(p_subscriber_id);
+    // console.log(p_title);
+    // console.log(p_body);
+    // console.log(p_platform_id);
+    // console.log(p_status_id);
+    // console.log(p_message_status);
+    // console.log(getDateTime());
+     //console.log("log inside :"+p_control_message_id);
     let sent_at = getDateTime();
-    con.getConnection(function (err,connect) {
-       //if(err) throw err ;$
-        con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
-            //console.log(res0);
-            if (err0) throw err0;
-            console.log('The solution is: ',  result.affectedRows);
+    if(p_status_id ==="1"){
+        con.getConnection(function (err,connect) {
+            //if(err) throw err ;$
+            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+                //console.log(res0);
+                if (err0) throw err0;
+                console.log('rows inserted: ',  result.affectedRows);
+            });
+            console.log("connected !!!!");
         });
-        console.log("connected !!!!");
-    });
-    // con.connect((err)=>{
-    //     if(err)throw err;
-    //     // var responseQuery ="INSERT INTO message_responses_v1 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (p_id, p_subscriber_id, p_title, p_body,p_platform_id, p_status_id, p_status_details, p_sent_at, p_control_message_id)";
-    //     // con.query(responseQuery,(Qerr,Qres)=> {
-    //     //     if (Qerr) throw Qerr;
-    //     //
-    //     // })
-    //     console.log("connected!");
-    // });
+    }
+    else if(p_status_id ==="3"){
+        con.getConnection(function (err,connect) {
+            //if(err) throw err ;$
+            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+                //console.log(res0);
+                if (err0) throw err0;
+                console.log('rows inserted: ',  result.affectedRows);
+            });
+            con.query(`UPDATE subscriber SET cloud_status = 1,uninstall_date = "${sent_at}" WHERE id = ${p_subscriber_id};`,(err0,result)=>{
+                //console.log(res0);
+                if (err0) throw err0;
+                console.log('rows updated: ',  result.affectedRows);
+            });
+
+        });
+    }
+    else {
+        con.getConnection(function (err,connect) {
+            //if(err) throw err ;$
+            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}",${p_control_message_id});`,(err0,result)=>{
+                //console.log(res0);
+                if (err0) throw err0;
+                console.log('rows inserted: ',  result.affectedRows);
+            });
+        });
+    }
+
 
 };
