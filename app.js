@@ -3,12 +3,14 @@ const app  = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 //const mongoose = require('mongoose');
-
+const router = require("routes");
 
 
 const messagingRoutes = require('./v4/message/routes/notifications');
 
 const expandWorkerRoute = require('./v4/message/routes/expandWorker');
+
+const dashBoardRoutes = require('./v4/message/routes/dashBoard');
 
 //app.use('/', router);
 
@@ -35,6 +37,11 @@ app.use('/api/message', messagingRoutes);
 
 // Route to handle the resquest on the ExpandWorker
 app.use('/api/expandWorker',expandWorkerRoute);
+
+// Route to handle the resquest on the dashBoard
+app.use('/api/analytics/dashboard',dashBoardRoutes);
+
+
 
 app.use((req,res,next) => {
     const error  = new Error('Verify the END-POINT or the request Method (POST)');

@@ -1,35 +1,14 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const mysql = require('mysql');
-
-var con = mysql.createConnection({
-    host: "ec2-34-227-160-194.compute-1.amazonaws.com",
-    user: "inn_usr",
-    password: "cCUyzADjS5QPHVVt59w46NqSdVFrepM9",
-    database: "inn_db"
-});
-
-// router.post('/dis',(req,res,next)=>{
-//     console.log("req chegou");
-//     console.log(req.body.sendPushRequest);
-//     res.status(200).json({
-//         message:"posting on dis :D"
-//     });
-// })
-
-router.post('/',(req,res,next)=>{
-    res.status(200).json({
-        message:"Sucesso uai"
-    })
-});
+var con = require('../connection/DBconnection');
 
 router.post('/v1',(req,res0,next)=>{
 
-    con.connect((err)=>{
-        if(err)throw err;
+    con.getConnection(function(err,connection){
+        if(err) throw err;
         console.log("connected!");
-    });
+    })
 
     if(req.body.app_id == null || req.body.control_message_id == null || req.body.notification_id == null || req.body.subscriber_id == null){
         return res0.status(200).json({
@@ -44,7 +23,7 @@ router.post('/v1',(req,res0,next)=>{
 
     let app_config,not_data,user_data,user_customfields;
 
-    con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
+    con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
         if(err) throw err;
         app_config = res[0];
         user_data = res[0];
@@ -75,7 +54,8 @@ router.post('/v1',(req,res0,next)=>{
                             AND se.subscriber_id = ${subscriber_id}
                             AND sed.id_event_data = aed.id
                             AND sed.Id_subscriber_event = se.id
-                            AND ae.is_active = 1;`, (err5,res5)=>{
+                            AND ae.is_active = 1
+                            ORDER BY created_in ASC;`, (err5,res5)=>{
                                 if(err5) throw err5;
                                 var events = {};
                                 Object.keys(res5).forEach(function(key){
@@ -152,37 +132,45 @@ router.post('/v1',(req,res0,next)=>{
                                             },
                                             app: {
                                                 app_id: app_id,
-                                                is_prod: is_prod,
-                                                    apns :{
-                                                        apple_cert_file: app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
-                                                        apple_cert_name: app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
-                                                        apple_cert_pass: app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                        apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
+                                                production: JSON.stringify(is_prod),
+                                                firebase_ios:app_config.firebase_ios != null ? JSON.stringify(app_config.firebase_ios) : "",
+                                                apns :{
+                                                    prod:{
+                                                        apple_prod_cert_file: app_config.production_cert_file != null ? app_config.production_cert_file:"",
+                                                        apple_prod_cert_name: app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                        apple_prod_cert_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass:"",
                                                     },
-                                                    fcm:{
-                                                        google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
-                                                        package_name:app_config.package_name != null ? app_config.package_name:"",
-                                                        class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
-                                                        firebase_ios:app_config.firebase_ios != null ? JSON.stringify(app_config.firebase_ios) : ""
-                                                    }
+                                                    sandbox:{
+                                                        apple_sandbox_cert_name:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                        apple_sandbox_cert_file:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                        apple_sandbox_cert_pass:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:""
+                                                    },
+                                                    apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
+                                                },
+                                                fcm:{
+                                                    google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
+                                                    package_name:app_config.package_name != null ? app_config.package_name:"",
+                                                    class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                },
+                                                
                                             },
                                             subscriber: {
                                                 subscriber_id: subscriber_id,
                                                 registration: user_data.registration,
-                                                platform_id: user_data.platform_id,
-                                                phone: ""
+                                                phone: "",
+                                                platform_id: JSON.stringify(user_data.platform_id)
                                             },
                                             custom_fields,
 
                                             events
                                         }
                                         
-                                        updateStatus3TO4(app_id );
-
+                                        await updateStatus3TO4(app_id );
+                                        // console.log("json = %j",sendPushRequest);
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
                                     };
-                                    axios.post('https://inn-dispatcher.herokuapp.com/message',
+                                    axios.post('https://send.inngage.com.br/api/message',
                                         {sendPushRequest}
                                     )
                                     .then(response => {
@@ -192,7 +180,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 });
                                             })
                                     .catch( err => {
-                                                console.log("Error sending message to Dispatcher... Details : ".err);
+                                                console.log("Error sending message to Dispatcher... Details : "+err);
                                                 res0.status(200).json({ 
                                                     teste:err.SendPushResponse,
                                                     error:err
@@ -206,13 +194,12 @@ router.post('/v1',(req,res0,next)=>{
 
 })
 
-
 router.post('/v3',(req,ress,next)=>{
    
-    con.connect((err)=>{
-        if(err)throw err;
+    con.getConnection(function(err,connection){
+        if(err) throw err;
         console.log("connected!");
-    });
+    })
 
     axios.defaults.headers = {
         'Content-Type': 'application/json'
@@ -306,31 +293,38 @@ router.post('/v3',(req,ress,next)=>{
                                                     },
                                                     app: {
                                                         app_id: app_id,
-                                                        is_prod: is_prod,
-                                                            apns :{
-                                                                apple_cert_file: app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
-                                                                apple_cert_name: app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
-                                                                apple_cert_pass: app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                                apns_topic: app_config.apns_topic != null ? app_config.apns_topic:"",
+                                                        production: JSON.stringify(is_prod),
+                                                        firebase_ios:app_config.firebase_ios != null ? JSON.stringify(app_config.firebase_ios) : "",
+                                                        apns :{
+                                                            prod:{
+                                                                apple_prod_cert_file: app_config.production_cert_file != null ? app_config.production_cert_file:"",
+                                                                apple_prod_cert_name: app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                                apple_prod_cert_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass:"",
                                                             },
-                                                            fcm:{
-                                                                google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
-                                                                package_name:app_config.package_name != null ? app_config.package_name:"",
-                                                                class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
-                                                                firebase_ios:app_config.firebase_ios != null ? JSON.stringify(app_config.firebase_ios) : ""
-                                                            }
+                                                            sandbox:{
+                                                                apple_sandbox_cert_name:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                                apple_sandbox_cert_file:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                                apple_sandbox_cert_pass:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:""
+                                                            },
+                                                            apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
+                                                        },
+                                                        fcm:{
+                                                            google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
+                                                            package_name:app_config.package_name != null ? app_config.package_name:"",
+                                                            class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                        },
+                                                        
                                                     },
                                                     subscriber: {
                                                         subscriber_id: subscriber_id,
                                                         registration: user_data.registration,
-                                                        platform_id: user_data.platform_id,
+                                                        platform_id: JSON.stringify(user_data.platform_id),
                                                         phone: ""
                                                     },
                                                     custom_fields,
         
                                                     events
                                                 }
-
                                             
                                                 var testRequest = {
                                                     control_message: {
@@ -368,10 +362,10 @@ router.post('/v3',(req,ress,next)=>{
                                         }
                                                 };
 
-                                                updateStatus3TO4(app_id);
+                                                await updateStatus3TO4(app_id);
                                                 // console.log(sendPushRequest);
-                                                // console.log("sending message to dispatcher....");
-                                                axios.post('https://inn-dispatcher.herokuapp.com/message',
+                                                console.log("sending message to dispatcher....");
+                                                axios.post('https://send.inngage.com.br/api/message',
                                                   {sendPushRequest}
                                                 )
                                                 .then(response => {
@@ -399,7 +393,6 @@ router.post('/v3',(req,ress,next)=>{
         SendPushResponse:"Messages sent successfullly",
     });
 })
-
 
 async function getIsProd(app_id){
     const sql = await new Promise((res,rej)=>{
