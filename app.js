@@ -3,7 +3,7 @@ const app  = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 //const mongoose = require('mongoose');
-const router = require("routes");
+//const router = require("routes");
 
 
 const messagingRoutes = require('./v4/message/routes/notifications');
