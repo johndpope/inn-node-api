@@ -553,7 +553,7 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
             console.log("connected !!!!");
         });
     }
-    else if(p_status_id ==="3"){
+    else if(p_status_id ==="3" && p_message_status ==="NotRegistered"){
         con.getConnection(function (err,connect) {
             //if(err) throw err ;$
             con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
@@ -569,7 +569,19 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
 
         });
     }
-    else {
+    else if(p_status_id ==="3" && p_message_status ==="MismatchSenderId")
+            {
+                con.getConnection(function (err,connect) {
+                    //if(err) throw err ;$
+                    con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+                        //console.log(res0);
+                        if (err0) throw err0;
+                        console.log('rows inserted: ',  result.affectedRows);
+                    });
+                });
+            }
+    else
+        {
         con.getConnection(function (err,connect) {
             //if(err) throw err ;$
             con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}",${p_control_message_id});`,(err0,result)=>{
