@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const numeral = require('numeral');
-var con = require('../connection/DBconnection');
+var con = require('../../message/connection/DBconnection');
 
 router.post('/',async (req,res,next)=>{
     var mods = req.body["modules[]"];
