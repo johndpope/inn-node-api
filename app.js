@@ -10,7 +10,7 @@ const messagingRoutes = require('./v4/message/routes/notifications');
 
 const expandWorkerRoute = require('./v4/message/routes/expandWorker');
 
-const dashBoardRoutes = require('./v4/message/routes/dashBoard');
+const dashBoardRoutes = require('./v4/analytics/routes/dashBoard');
 
 //app.use('/', router);
 
