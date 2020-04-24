@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const numeral = require('numeral');
-
 var con = require('../connection/DBconnection');
 
 router.post('/',async (req,res,next)=>{
@@ -238,7 +237,7 @@ async function getPushesWeekGeneralSummary(app_id,data1,data2){
             openedNum += a.opened;
             received += a.received;
             installedNum += a.installed;
-            unistalledNum += a.unistalled;
+            unistalledNum += a.uninstalled;
             sessionsNum += a.sessions;
             sessionsUniqueNum += a.unique_sessions;
         }
@@ -282,7 +281,7 @@ async function getPushesWeekGeneralSummary(app_id,data1,data2){
         return {
             labels: labels,
             installed: installedNum,
-            unistalled: unistalledNum,
+            uninstalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
             sent:sentGrup,
@@ -296,7 +295,7 @@ async function getPushesWeekGeneralSummary(app_id,data1,data2){
         return {
             labels: labels,
             installed: installedNum,
-            unistalled: unistalledNum,
+            uninstalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
             sent:sentGrup,
@@ -394,7 +393,7 @@ async function getPushesMonthGeneralSummary(app_id,data1,data2){
         return {
             labels: labels,
             installed: installedNum,
-            unistalled: unistalledNum,
+            uninstalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
             sent:sentGrup,
@@ -408,7 +407,7 @@ async function getPushesMonthGeneralSummary(app_id,data1,data2){
         return {
             labels: labels,
             installed: installedNum,
-            unistalled: unistalledNum,
+            uninstalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
             sent:sentGrup,
@@ -503,7 +502,7 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
         return {
             labels: labels,
             installed: installedNum,
-            unistalled: unistalledNum,
+            uninstalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
             sent:finalSend,
@@ -517,7 +516,7 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
     return {
         labels: labels,
         installed: installedNum,
-        unistalled: unistalledNum,
+        uninstalled: unistalledNum,
         sessions: sessionsNum,
         unique_sessions: sessionsUniqueNum,
         sent:sendGrup,
