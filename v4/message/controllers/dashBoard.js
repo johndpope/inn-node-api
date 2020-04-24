@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const numeral = require('numeral');
+
 var con = require('../connection/DBconnection');
 
 router.post('/',async (req,res,next)=>{
@@ -8,8 +9,7 @@ router.post('/',async (req,res,next)=>{
     if(mods == undefined) mods = req.body.modules;
     
     const app_token = req.body.app_token;
-    console.log("modules = "+mods);
-    console.log("app_token = "+app_token);
+
     if(app_token == undefined)
         return res.status(200).json({
             Message: "App_Token field is undefined, please check app_token field."
@@ -24,10 +24,6 @@ router.post('/',async (req,res,next)=>{
             Message: "Modules array empty, please check modules field."
         })
 
-    // const id_audi = req.body.id_audi;
-    // const number_days = req.body.number_days;
-    // const auto_id = req.body.automation_id
-    // var today = getTodayDate();
     const id = await getAppId(app_token);
     var updatedMods = []
     updatedMods = await mods.map(async mod =>{
@@ -171,7 +167,7 @@ async function getPushesTodayGeneralSummary(app_id,data1,data2){
         unistalledNum = numeral(unistalledNum).format();
         sessionsNum = numeral(sessionsNum).format();
         sessionsUniqueNum = numeral(sessionsUniqueNum).format();
-       
+    
         return  {
             labels: labels,
             installed: installedNum,
@@ -209,7 +205,6 @@ async function getPushesWeekGeneralSummary(app_id,data1,data2){
         })
     });
     var res = await Promise.all(sql);
-    console.log(sql);
     labels = getJsonLabelWeek();
     id = [];
     installed = [];
@@ -436,7 +431,6 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
     var res = await Promise.all(sql);
 
     labels = getJsonLabelYear();
-    console.log(labels);
     id = [];
     installed = [];
     uninstalled = [];
@@ -452,9 +446,12 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
     sessionsNum = 0;
     sessionsUniqueNum = 0;
     unistalledNum = 0;
-
+    var sendGrup = [];
+    var finalSend = [];
+    for(i=0;i<12;++i)sendGrup.push(0);
     if(res.length > 0){
-
+        var todayAux = new Date(data2);
+        var mesRep = 0;
         for(i = 0;i<res.length;i++){
             const a = res[i];
             id.push(a.id);
@@ -472,6 +469,14 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
             unistalledNum += a.uninstalled;
             sessionsNum += a.sessions;
             sessionsUniqueNum += a.unique_sessions;
+
+            var auxD = new Date(a.today_date);
+            if(todayAux.getMonth() == auxD.getMonth() && todayAux.getFullYear() == auxD.getFullYear()){
+                mesRep += a.sent;
+            }
+            else 
+                sendGrup[(auxD.getMonth())] +=a.sent; 
+            
         }
         if(sentNum == 0){
             openedNum = 0;
@@ -480,6 +485,12 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
             openedNum = (openedNum*100)/sentNum;
             received = (received*100)/sentNum;
         }
+
+        for(i=todayAux.getMonth();i<12;i++)finalSend.push(sendGrup[i]);
+        for(i=0;i<todayAux.getMonth();i++)finalSend.push(sendGrup[i]);
+        finalSend.push(mesRep);
+
+
         numeral.defaultFormat('0,0')
         sentNum = numeral(sentNum).format();
         openedNum = numeral(openedNum).format();
@@ -489,14 +500,13 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
         sessionsNum = numeral(sessionsNum).format();
         sessionsUniqueNum = numeral(sessionsUniqueNum).format();
 
-
         return {
             labels: labels,
             installed: installedNum,
             unistalled: unistalledNum,
             sessions: sessionsNum,
             unique_sessions: sessionsUniqueNum,
-            sent:"ainda nao",
+            sent:finalSend,
             received: received,
             opened: opened,
             sentNum: sentNum,
@@ -510,7 +520,7 @@ async function getPushesYearGeneralSummary(app_id,data1,data2){
         unistalled: unistalledNum,
         sessions: sessionsNum,
         unique_sessions: sessionsUniqueNum,
-        sent:"ainda nao",
+        sent:sendGrup,
         received: received,
         opened: opened,
         sentNum: sentNum,
@@ -547,7 +557,6 @@ function getJsonLabelWeek(){
     for(i=0;i<min;i++){
         s.push(sem[i]);
     }
-    console.log(s);
     return s;
 }
 
@@ -559,7 +568,6 @@ function getJsonLabelMonth(){
 
     var l =[];
     for(i=1;i<=min;i++)l.push(i);
-    console.log(l);
     return l;
 }
 
@@ -679,8 +687,6 @@ async function getActiveBase(app_id){
             res(JSON.parse(JSON.stringify(row)));
         });
     });
-    console.log(active_users[0].total);
-    console.log(total_users[0].total);
     
     var activeBase_number = parseInt((active_users[0].total/total_users[0].total)*100);
 
@@ -775,7 +781,6 @@ async function getAppId(app_token){
             res(row);
         });
     });
-    // console.log(id[0].id);
     return id[0].id;
 }
 
