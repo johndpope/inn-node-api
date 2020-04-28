@@ -594,3 +594,29 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
 
 
 };
+exports.persist = (req,res,next) =>
+{
+    let sent_in = getDateTime();
+        let appId = req.body.appId;
+        let msgType=req.body.msgType;
+        let msgTitle=req.body.msgTitle;
+        let msgBody=req.body.msgBody;
+        let campaign=req.body.campaignId;
+        let msgUrl=req.body.msgUrl;
+        let typeUrl=req.body.typeUrl;
+       let imgUrl=req.body.imgUrl;
+       let status=req.body.status;
+         con.getConnection(function (err,connect) {
+        //if(err) throw err ;$
+        con.query(`INSERT INTO control_message (sent_in, app_id, message_type_id, title,body, campaign_id, url_push, url_type, img_push, status) VALUES ("${sent_in}","${appId}", "${msgType}", "${msgTitle}", "${msgBody}", "${campaign}", "${msgUrl}", "${typeUrl}", "${imgUrl}", "${status}");`,(err0,result)=>{
+            //console.log(res0);
+            if (err0) throw err0;
+            console.log('rows inserted: ',  result.affectedRows);
+           res.status(200).json({
+               result : "Row inserted !",
+               control_message_id: result.insertId
+           })
+        });
+        console.log("connected !!");
+    });
+};
