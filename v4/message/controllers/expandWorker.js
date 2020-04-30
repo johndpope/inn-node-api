@@ -163,7 +163,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 events
                                             }
                                             
-                                            await updateStatus3TO4(app_id );
+                                            await updateStatus3TO4(control_message_id);
                                             // console.log("json = %j",sendPushRequest);
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
