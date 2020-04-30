@@ -365,7 +365,7 @@ router.post('/v3',(req,ress,next)=>{
                                                 await updateStatus3TO4(app_id);
                                                 // console.log(sendPushRequest);
                                                 console.log("sending message to dispatcher....");
-                                                axios.post('https://send.inngage.com.br/api/message',
+                                                axios.post('https://inn-api.herokuapp.com/api/message',
                                                   {sendPushRequest}
                                                 )
                                                 .then(response => {

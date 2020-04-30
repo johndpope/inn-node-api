@@ -27,7 +27,11 @@ let getDateTime = () =>{
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     var dateTime = date+' '+time;
     return dateTime
-}
+};
+
+exports.send = (req,res,next) =>{
+
+};
 exports.send2Fcm = (req,res,next) => {
     let newBody ;
     let newTitle ;
@@ -407,7 +411,7 @@ exports.checkRequestFileds = (req,res,next) => {
 };
 
 exports.send2APNS = (req,res,next) => {
-
+    let baseUrl = "https://app.inngage.com.br/resources/uploads/certificates_pem/";
    // let deviceToken = "25327d23d4c23a1b09199bc079fc72be3b2baa14fbc377963a5638dff0eca0ef";
     let deviceToken = "789ea8e1e3d0398506773e99d0abeabb8292a87204a21d7461508411b4862a56";
     //console.log(__dirname);
@@ -620,3 +624,9 @@ exports.persist = (req,res,next) =>
         console.log("connected !!");
     });
 };
+
+let send2FCM  =() => {};
+let send2FcmFirebaseiOS =() => {};
+let send2ApnsDev =() => {};
+let send2ApnsProd =() => {};
+let send2iCarros =() => {};
