@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 var con = require('../connection/DBconnection');
 
-router.post('/v1',async (req,res0,next)=>{
+router.post('/v1',(req,res0,next)=>{
 
     con.getConnection(function(err99,connection){
         if(err99) throw err99;
