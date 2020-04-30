@@ -113,7 +113,7 @@ router.post('/v1',(req,res0,next)=>{
                                                         events
                                         };
 
-                                        let sendPushRequest = {
+                                        var sendPushRequest = {
 
                                             control_message: {
                                                 control_message_id: control_message_id,
@@ -163,16 +163,16 @@ router.post('/v1',(req,res0,next)=>{
                                             custom_fields,
 
                                             events
-                                        };
+                                        }
                                         
                                         await updateStatus3TO4(app_id );
                                         // console.log("json = %j",sendPushRequest);
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
                                     };
-                                    let request = JSON.stringify(sendPushRequest);
+
                                     axios.post('https://inn-api-new.herokuapp.com/api/message',
-                                        request
+                                        {sendPushRequest}
                                     )
                                     .then(response => {
                                                 console.log("Sending to Dispatcher...");
