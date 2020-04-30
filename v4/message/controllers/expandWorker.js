@@ -170,7 +170,7 @@ router.post('/v1',(req,res0,next)=>{
                                     axios.defaults.headers = {
                                         'Content-Type': 'application/json'
                                     };
-                                    axios.post('https://send.inngage.com.br/api/message',
+                                    axios.post('https://inn-api.herokuapp.com/api/message',
                                         {sendPushRequest}
                                     )
                                     .then(response => {
