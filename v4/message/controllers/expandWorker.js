@@ -67,18 +67,17 @@ router.post('/v1',(req,res0,next)=>{
                                 
 
                                 con.query(`Select * from control_message where id_control_message = ${control_message_id} 
-                                    AND (body LIKE '%:%:%'
-                                    OR body LIKE '%|*%*|%'
+                                    AND (body LIKE '%|*%*|%'
                                     OR body LIKE '%{{%}}%'
-                                    OR title LIKE '%:%:%'
                                     OR title LIKE '%|*%*|%'
                                     OR title LIKE '%{{%}}%');`,  async (err6,res6)=>{
                                     if(err6) throw err6;
 
                                     var is_prod = await getIsProd(app_id);
 
-                                    var per_flag = 1;
+                                    var per_flag = 0;
                                     if(res6.length > 0)per_flag = 1;
+
                                     per_flag = JSON.stringify(per_flag);
                                     var sendPushRequest2 = {
                                                         control_message: {
