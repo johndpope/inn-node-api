@@ -274,8 +274,8 @@ router.post('/v3',(req,ress,next)=>{
                                                     var per_flag = 0;
                                                     if(res6.length > 0)per_flag = 1;
                                                     per_flag = JSON.stringify(per_flag);
+                                                    
                                                     var sendPushRequest = {
-
                                                         control_message: {
                                                             control_message_id: control_message_id,
                                                             title: not_data.title,
@@ -325,47 +325,11 @@ router.post('/v3',(req,ress,next)=>{
             
                                                         events
                                                     }
-                                                
-                                                    var testRequest = {
-                                                        control_message: {
-                                                                                        control_message_id: '2720755',
-                                                                                        title :'testando NOVO',
-                                                                                        body :'mensagem de teste NOVO ...',
-                                                                                        message: 'mensagem de teste NOVO...',
-                                                                                        url: "",
-                                                                                        image_url: "",
-                                                                                        url_type: "",
-                                                                                        notid: '258671049',
-                                                                                        personalised_flag: '0'
-                                            },
-                                                        channel: {
-                                                                                        provider_id: "",
-                                                                                        end_point: ""
-                                            },
-                                                        app: {
-                                                                                        app_id: '161',
-                                                                                        apple_token_url: "", 
-                                                                                        apple_token_pass: "",
-                                                                                        apple_key: "", // nao lembro oque seria isso
-                                                                                        fcm_key: 'AIzaSyDfrO8W79ZfftYanTffpc2BTxvyydpIlBo'
-                                            },
-                                                        subscriber: {
-                                                                                        subscriber_id: '9130114',
-                                                                                        registration: 'cYP-0-m7xOY:APA91bGsozbC4Cr9Fi-p-FKjfO8lWhHBJwVQqqZ5y12A00FNbbmL6ZqS_9x8zEKjtP8e3m500kIiWVQ6qrChIOp2YZw_6UkL3iUczhvatNSfHPuSaLIXVNRtmHqM7sdMq4ATEA7yW870',
-                                                                                        phone: ""
-                                            },
-                                                        custom_fields: {
-                                                                                        cfs
-                                            },
-                                                        events:{
-                                                                                        eves
-                                            }
-                                                    };
-
-                                                    await updateStatus3TO4(app_id);
+                                                    
+                                                    await updateStatus3TO4(control_message_id);
                                                     // console.log(sendPushRequest);
                                                     console.log("sending message to dispatcher....");
-                                                    axios.post('https://send.inngage.com.br/api/message',
+                                                    axios.post('https://inn-api-new.herokuapp.com/api/message',
                                                     {sendPushRequest}
                                                     )
                                                     .then(response => {
@@ -373,7 +337,7 @@ router.post('/v3',(req,ress,next)=>{
                                                         console.log(response.data.SendPushResponse.results);
                                                     })
                                                     .catch( er => {
-                                                        console.log(er.sendPushRequest);
+                                                        console.log(er.SendPushResponse);
                                                     });
 
                                                 });
