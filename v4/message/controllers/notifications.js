@@ -600,28 +600,55 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
 };
 exports.persist = (req,res,next) =>
 {
-    let sent_in = getDateTime();
-        let appId = req.body.appId;
-        let msgType=req.body.msgType;
-        let msgTitle=req.body.msgTitle;
-        let msgBody=req.body.msgBody;
-        let campaign=req.body.campaignId;
-        let msgUrl=req.body.msgUrl;
-        let typeUrl=req.body.typeUrl;
-       let imgUrl=req.body.imgUrl;
-       let status=req.body.status;
-         con.getConnection(function (err,connect) {
+    let sent_in = getDateTime();    
+    let appId = req.body.appId;
+    let msgType=req.body.msgType;
+    let msgTitle=req.body.msgTitle;
+    let msgBody=req.body.msgBody;
+    let campaign=req.body.campaignId;
+    let msgUrl=req.body.msgUrl;
+    let typeUrl=req.body.typeUrl;
+    let imgUrl=req.body.imgUrl;
+    let status=req.body.status;
+    con.getConnection(function (err,connect) {
         //if(err) throw err ;$
+        console.log("connected !!");
         con.query(`INSERT INTO control_message (sent_in, app_id, message_type_id, title,body, campaign_id, url_push, url_type, img_push, status) VALUES ("${sent_in}","${appId}", "${msgType}", "${msgTitle}", "${msgBody}", "${campaign}", "${msgUrl}", "${typeUrl}", "${imgUrl}", "${status}");`,(err0,result)=>{
             //console.log(res0);
             if (err0) throw err0;
             console.log('rows inserted: ',  result.affectedRows);
-           res.status(200).json({
+            res.status(200).json({
                result : "Row inserted !",
                control_message_id: result.insertId
-           })
+            });
         });
-        console.log("connected !!");
+
+    });
+};
+
+exports.mli = (req,res,next) => {
+
+    let subscriber_id = req.body.subscriber_id;
+    let control_message_id = req.body.control_message_id;
+
+    con.getConnection(function (err,connect) {
+        if(err) throw err;
+
+        con.query(`SELECT * FROM subscriber where id = ${subscriber_id}`,(err0,res0)=>{
+            if(err0) throw err0;
+            let user = res0[0];
+            con.query(`SELECT * FROM control_message where id_control_message = ${control_message_id}`,(err1,res1)=>{
+                let cm = res1[0];
+                con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subscriber_id},NOW(),${user.platform_id},${cm.status},${cm.schedule},null,${control_message_id},0,null)`,(err2,res2)=>{
+                    if(err2) throw err2;
+                    console.log('rows inserted: ',  res2.affectedRows);
+                    res.status(200).json({
+                        message:"Success",
+                        control_message_id:res2.insertId
+                    });
+                });
+            });
+        });
     });
 };
 
