@@ -601,7 +601,7 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
 exports.persist = (req,res,next) =>
 {
     let sent_in = getDateTime();
-    let appId = req.body.appId;
+    let appToken = req.body.appToken;
     let msgType=req.body.msgType;
     let msgTitle=req.body.msgTitle;
     let msgBody=req.body.msgBody;
@@ -614,54 +614,58 @@ exports.persist = (req,res,next) =>
     con.getConnection(function (err,connect) {
         //if(err) throw err ;$
         console.log("connected !!");
+        con.query(`SELECT id from app where token = "${appToken}"`,(err99,res99)=>{
+            if(err99) throw err99;
+            let appId = res99[0].id;
 
-        con.query(`INSERT INTO control_message (sent_in, app_id, message_type_id, title,body, campaign_id, url_push, url_type, img_push, status) VALUES ("${sent_in}","${appId}", "${msgType}", "${msgTitle}", "${msgBody}", "${campaign}", "${msgUrl}", "${typeUrl}", "${imgUrl}", "${status}")`,(err0,result)=>{
-            if (err0) throw err0;
-            console.log('rows inserted in control_message: ',  result.affectedRows);
-            let control_message_id = result.insertId;
-            for(i=0;i<identifierList.length;i++){
-                let identifier = identifierList[i];
-                con.query(`SELECT id FROM subscriber WHERE identifier = "${identifier}" AND app_id = ${appId};`,(err1,res1)=>{
-                    if(err1) throw err1;
-                    let subId = res1[0].id;
-
-                    
-                    con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subId},"0000-00-00 00:00:00",null,9,null,null,${control_message_id},0,null)`,(err2,res2)=>{
-                        if(err2) throw err2;
-                        console.log('rows inserted in message_log_insert : ',  res2.affectedRows);
-                        let notId = res2.insertId;
-                        
-                        axios.defaults.headers = {
-                            'Content-Type': 'application/json'
-                        };
+            con.query(`INSERT INTO control_message (sent_in, app_id, message_type_id, title,body, campaign_id, url_push, url_type, img_push, status) VALUES ("${sent_in}","${appId}", "${msgType}", "${msgTitle}", "${msgBody}", "${campaign}", "${msgUrl}", "${typeUrl}", "${imgUrl}", "${status}")`,(err0,result)=>{
+                if (err0) throw err0;
+                console.log('rows inserted in control_message: ',  result.affectedRows);
+                let control_message_id = result.insertId;
                 
-                        axios.post('http://ec2-3-90-63-201.compute-1.amazonaws.com:3000/api/expandWorker/v1',
-                        {
-                            control_message_id: control_message_id,
-                            notification_id:notId,
-                            subscriber_id:subId,
-                            app_id:appId
-                        }
-                        )
-                        .then(response => {
-                            console.log("Sending to ExpandWorker...");
-                            res.status(200).json({
-                                control_message:control_message_id,
-                                message_log_insert:notId,
-                                SendPushResponse:response.data,
-                            });
-                        })
-                        .catch( err => {
-                            console.log("Error sending message to ExpandWorker... Details : "+err);
-                            res.status(200).json({ 
-                                teste:err.SendPushResponse,
-                                error:err
-                            });
-                        });    
+                for(i=0;i<identifierList.length;i++){
+                    let identifier = identifierList[i];
+                    con.query(`SELECT id FROM subscriber WHERE identifier = "${identifier}" AND app_id = ${appId};`,(err1,res1)=>{
+                        if(err1) throw err1;
+                        let subId = res1[0].id;
+                        
+                        con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subId},"0000-00-00 00:00:00",null,9,null,null,${control_message_id},0,null)`,(err2,res2)=>{
+                            if(err2) throw err2;
+                            console.log('rows inserted in message_log_insert : ',  res2.affectedRows);
+                            let notId = res2.insertId;
+                            
+                            axios.defaults.headers = {
+                                'Content-Type': 'application/json'
+                            };
+                    
+                            axios.post('http://ec2-3-90-63-201.compute-1.amazonaws.com:3000/api/expandWorker/v1',
+                            {
+                                control_message_id: control_message_id,
+                                notification_id:notId,
+                                subscriber_id:subId,
+                                app_id:appId
+                            }
+                            )
+                            .then(response => {
+                                console.log("Sending to ExpandWorker...");
+                                res.status(200).json({
+                                    control_message:control_message_id,
+                                    message_log_insert:notId,
+                                    SendPushResponse:response.data,
+                                });
+                            })
+                            .catch( err => {
+                                console.log("Error sending message to ExpandWorker... Details : "+err);
+                                res.status(200).json({ 
+                                    teste:err.SendPushResponse,
+                                    error:err
+                                });
+                            });    
+                        });
                     });
-                });
-            }
-        });
+                }
+            });
+        })
     });
 };
 
