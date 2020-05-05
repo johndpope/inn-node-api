@@ -626,7 +626,7 @@ exports.persist = (req,res,next) =>
     });
 };
 
-exports.mli = (req,res,next) => {
+exports.mliv3 = (req,res,next) => {
 
     let subscriber_id = req.body.subscriber_id;
     let control_message_id = req.body.control_message_id;
@@ -640,6 +640,32 @@ exports.mli = (req,res,next) => {
             con.query(`SELECT * FROM control_message where id_control_message = ${control_message_id}`,(err1,res1)=>{
                 let cm = res1[0];
                 con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subscriber_id},NOW(),${user.platform_id},${cm.status},${cm.schedule},null,${control_message_id},0,null)`,(err2,res2)=>{
+                    if(err2) throw err2;
+                    console.log('rows inserted: ',  res2.affectedRows);
+                    res.status(200).json({
+                        message:"Success",
+                        control_message_id:res2.insertId
+                    });
+                });
+            });
+        });
+    });
+};
+
+exports.mliv1 = (req,res,next) => {
+
+    let subscriber_id = req.body.subscriber_id;
+    let control_message_id = req.body.control_message_id;
+
+    con.getConnection(function (err,connect) {
+        if(err) throw err;
+
+        con.query(`SELECT * FROM subscriber where id = ${subscriber_id}`,(err0,res0)=>{
+            if(err0) throw err0;
+            let user = res0[0];
+            con.query(`SELECT * FROM control_message where id_control_message = ${control_message_id}`,(err1,res1)=>{
+                let cm = res1[0];
+                con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subscriber_id},NOW(),${user.platform_id},9,${cm.schedule},null,${control_message_id},0,null)`,(err2,res2)=>{
                     if(err2) throw err2;
                     console.log('rows inserted: ',  res2.affectedRows);
                     res.status(200).json({
