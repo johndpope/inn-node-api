@@ -638,7 +638,7 @@ exports.persist = (req,res,next) =>
                                 'Content-Type': 'application/json'
                             };
                     
-                            axios.post('http://ec2-3-90-63-201.compute-1.amazonaws.com:3000/api/expandWorker/v1',
+                            axios.post('http://ec2-54-242-108-13.compute-1.amazonaws.com:3000/api/expandWorker/v1',
                             {
                                 control_message_id: control_message_id,
                                 notification_id:notId,
