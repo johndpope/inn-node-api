@@ -627,41 +627,54 @@ exports.persist = (req,res,next) =>
                     let identifier = identifierList[i];
                     con.query(`SELECT id FROM subscriber WHERE identifier = "${identifier}" AND app_id = ${appId};`,(err1,res1)=>{
                         if(err1) throw err1;
-                        let subId = res1[0].id;
+
+                        if(res1.length > 0){
+                            let subId = res1[0].id;
+                            con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subId},"0000-00-00 00:00:00",null,9,null,null,${control_message_id},0,null)`,(err2,res2)=>{
+                                if(err2) throw err2;
+                                console.log('rows inserted in message_log_insert : ',  res2.affectedRows);
+                                let notId = res2.insertId;
+                                
+                                axios.defaults.headers = {
+                                    'Content-Type': 'application/json'
+                                };
                         
-                        con.query(`INSERT INTO message_log_insert (subscriber_id,created_in,platform_id,message_status_id,scheduled_to,sent_in,control_message_id,fl_opened,opened_in) values (${subId},"0000-00-00 00:00:00",null,9,null,null,${control_message_id},0,null)`,(err2,res2)=>{
-                            if(err2) throw err2;
-                            console.log('rows inserted in message_log_insert : ',  res2.affectedRows);
-                            let notId = res2.insertId;
-                            
-                            axios.defaults.headers = {
-                                'Content-Type': 'application/json'
-                            };
-                    
-                            axios.post('http://ec2-54-242-108-13.compute-1.amazonaws.com:3000/api/expandWorker/v1',
-                            {
-                                control_message_id: control_message_id,
-                                notification_id:notId,
-                                subscriber_id:subId,
-                                app_id:appId
-                            }
-                            )
-                            .then(response => {
-                                console.log("Sending to ExpandWorker...");
+                                axios.post('http://ec2-54-242-108-13.compute-1.amazonaws.com:3000/api/expandWorker/v1',
+                                {
+                                    control_message_id: control_message_id,
+                                    notification_id:notId,
+                                    subscriber_id:subId,
+                                    app_id:appId
+                                }
+                                )
+                                .then(response => {
+                                    console.log("Sending to ExpandWorker...");
+                                    res.status(200).json({
+                                        control_message:control_message_id,
+                                        message_log_insert:notId,
+                                        SendPushResponse:response.data,
+                                    });
+                                })
+                                .catch( err => {
+                                    console.log("Error sending message to ExpandWorker... Details : "+err);
+                                    res.status(200).json({ 
+                                        teste:err.SendPushResponse,
+                                        error:err
+                                    });
+                                });    
+                            });
+
+                        }else {
+                            con.query(`INSERT INTO message_log_failure (control_message_id,subscriber_identifier,status) values (${control_message_id},"${identifier}",0)`,(err3,res3)=>{
+                                if(err3) throw err3;
+                                console.log('rows inserted in message_log_failure : ',  res3.affectedRows);
                                 res.status(200).json({
-                                    control_message:control_message_id,
-                                    message_log_insert:notId,
-                                    SendPushResponse:response.data,
+                                    message:"The subscriber does not exist in the database. Please try a valid identifier",
+                                    message_failure:res3.insertId,
+                                    control_message: control_message_id
                                 });
-                            })
-                            .catch( err => {
-                                console.log("Error sending message to ExpandWorker... Details : "+err);
-                                res.status(200).json({ 
-                                    teste:err.SendPushResponse,
-                                    error:err
-                                });
-                            });    
-                        });
+                            });
+                        }
                     });
                 }
             });
