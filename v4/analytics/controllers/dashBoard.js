@@ -672,22 +672,21 @@ async function getEngagementChart(app_id){
 
 async function getActiveBase(app_id){
     const active_users = await new Promise((res,rej) => {
-        con.query(`select count(last_update) as total
-        from subscriber
-        where app_id = ${app_id} and last_update >= DATE_SUB(NOW(), INTERVAL 7 DAY);`,(err,row)=>{
+        con.query(`SELECT * FROM retention_summary WHERE app_id = ${app_id} AND period_type = 2
+            ORDER BY id DESC
+            LIMIT 1`,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         });
     });
 
     const total_users = await new Promise((res,rej) => {
-        con.query(`SELECT count(id) as total from subscriber WHERE app_id = ${app_id} AND cloud_status = 0`,(err,row)=>{
+        con.query(`SELECT count_subscribers FROM app_summary WHERE app_id = ${app_id}`,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         });
     });
-    
-    var activeBase_number = parseInt((active_users[0].total/total_users[0].total)*100);
+    var activeBase_number = parseInt((active_users[0].active_users/total_users[0].count_subscribers)*100);
 
     var activeBaseChart = {
         active_base: activeBase_number
