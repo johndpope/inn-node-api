@@ -31,148 +31,187 @@ let getDateTime = () =>{
 
 exports.send = (req,res,next) =>{
 
+   let platform_id= req.body.sendPushRequest.subscriber.platform_id;
+    let firebase_ios = req.body.sendPushRequest.app.firebase_ios;
+    let app_id = req.body.sendPushRequest.app.app_id;
+
+    //if the app is in production
+    let is_production =req.body.sendPushRequest.app.production;
+    let apns_topic = req.body.sendPushRequest.app.apns_topic;
+
+        switch (true)
+        {
+            case ((firebase_ios==="1") && (platform_id === "1")) :
+                send2FcmFirebaseiOS(req,res);
+                break;
+
+                    case  ((firebase_ios==="0") && (platform_id === "1")) :
+                        send2FCM(req,res);
+                        break;
+
+                            case ((firebase_ios==="1") && (platform_id === "1") && (app_id==="213")):
+                                send2iCarros(req,res);
+                                break;
+
+                            case ((firebase_ios==="1") && (platform_id === "2")):
+                                send2FcmFirebaseiOS(req,res);
+                                break;
+
+                    case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="1")):
+                        send2ApnsProd(req,res,apns_topic);
+                        break;
+
+            case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="0")):
+                send2ApnsDev(req,res,apns_topic);
+                break;
+
+
+
+
+        }
+
 };
-exports.send2Fcm = (req,res,next) => {
-    let newBody ;
-    let newTitle ;
-    let p_id  = req.body.sendPushRequest.control_message.notid;
-    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
-    let p_platform_id  = 1;
-    let p_status_id  = "";
-    let p_status_details  = "";
-    let p_sent_at  = "";
-    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
-    if (!req.res.locals.customizedBody)
-    {
-        newTitle = req.body.sendPushRequest.control_message.title;
-        newBody = req.body.sendPushRequest.control_message.body;
-    }
-    else 
-    {
-        newTitle = req.res.locals.customizedTitle;
-        newBody = req.res.locals.customizedBody;
-    }
-
-    let request =   { to:req.body.sendPushRequest.subscriber.registration,
-        priority:"high",
-        data:{
-        provider:"inngage",
-            title: newTitle,
-            body:newBody,
-            message:newBody,
-            id:req.body.sendPushRequest.control_message.notid,
-            notId:req.body.sendPushRequest.control_message.notid,
-            act_class:req.body.sendPushRequest.app.fcm.class_name,
-            act_pkg:req.body.sendPushRequest.app.fcm.package_name,
-            url:req.body.sendPushRequest.control_message.url,
-            style:"picture",
-            summaryText:newBody,
-            image:req.body.sendPushRequest.control_message.image_url,
-            inngage_data:""
-    },
-    notification:{
-        provider:"inngage",
-            title: newTitle,
-            body:newBody,
-            message:newBody,
-            id:req.body.sendPushRequest.control_message.notid,
-            notId:req.body.sendPushRequest.control_message.notid,
-            act_class:req.body.sendPushRequest.app.fcm.class_name,
-            act_pkg:req.body.sendPushRequest.app.fcm.package_name,
-            url:req.body.sendPushRequest.control_message.url,
-            style:"picture",
-            summaryText:newBody,
-            image:req.body.sendPushRequest.control_message.image_url,
-            inngage_data:""
-    }
-    };
-    let message = JSON.stringify(request);
-        //console.log(req.body.sendPushRequest.subscriber.registration);
-    axios.defaults.headers = {
-        'Content-Type': 'application/json',
-        Authorization: "key= "+req.body.sendPushRequest.app.fcm.google_api_key
-    };
-     axios.post('https://fcm.googleapis.com/fcm/send',
-         message
-     )
-      .then(function (response) {
-
-          if(response.data.success===1)
-          {    p_status_id = response.data.success;
-              p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-              //saveResponse2DB(status_id,message_status);
-              res.status(200).json({
-                  SendPushResponse:{
-                      //success : response.data,
-                      //failure : response.data.failure,
-                      status_details:p_status_details
-                  }
-
-
-              });
-
-          } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
-              p_status_id = '3';
-              p_status_details=response.data.results[0]["error"];
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-              res.status(200).json({
-                  SendPushResponse:{
-
-                      status_details:response.data.results[0]["error"],
-                      status_id : p_status_id
-                  }
-              });
-
-          } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
-              {
-                  p_status_id = '9';
-                  p_status_details=response.data.results[0]["error"];
-                  saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-                  res.status(200).json({
-                      SendPushResponse:{
-                          status_details:response.data.results[0]["error"],
-                          status_id : p_status_id
-                      }
-                  });
-          }
-                })
-      .catch(function (err) {
-          p_status_id = '99';
-
-          if(err.message === "Request failed with status code 401")
-          {
-              p_status_details="Request failed with status code 401 , Verify the FCM API key.";
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-              res.status(200).json({
-                  SendPushResponse:{
-                      Error:err.message,
-                      Reason:'Verify the FCM API key.',
-                      Key:req.body.sendPushRequest.app.fcm.google_api_key,
-                      status_id:p_status_id
-                  }
-              });
-          } else
-          {
-              p_status_details=err.stack;
-              saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-              res.status(200).json({
-                  SendPushRespnse:{
-                      Error:err.message,
-                      Details:err.stack,
-                      Reason:p_status_details,
-                      status_id:p_status_id
-                  }
-              });
-          }
-          //console.log("log before saving :" + p_control_message_id);
-
-
-        //console.log(err.data);
-
-
-      });
-    };
+// exports.send2Fcm = (req,res,next) => {
+//     let newBody ;
+//     let newTitle ;
+//     let p_id  = req.body.sendPushRequest.control_message.notid;
+//     let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+//     let p_platform_id  = 1;
+//     let p_status_id  = "";
+//     let p_status_details  = "";
+//     let p_sent_at  = "";
+//     let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
+//     if (!req.res.locals.customizedBody)
+//     {
+//         newTitle = req.body.sendPushRequest.control_message.title;
+//         newBody = req.body.sendPushRequest.control_message.body;
+//     }
+//     else
+//     {
+//         newTitle = req.res.locals.customizedTitle;
+//         newBody = req.res.locals.customizedBody;
+//     }
+//
+//     let request =   { to:req.body.sendPushRequest.subscriber.registration,
+//         priority:"high",
+//         data:{
+//         provider:"inngage",
+//             title: newTitle,
+//             body:newBody,
+//             message:newBody,
+//             id:req.body.sendPushRequest.control_message.notid,
+//             notId:req.body.sendPushRequest.control_message.notid,
+//             act_class:req.body.sendPushRequest.app.fcm.class_name,
+//             act_pkg:req.body.sendPushRequest.app.fcm.package_name,
+//             url:req.body.sendPushRequest.control_message.url,
+//             style:"picture",
+//             summaryText:newBody,
+//             image:req.body.sendPushRequest.control_message.image_url,
+//             inngage_data:""
+//     },
+//     notification:{
+//         provider:"inngage",
+//             title: newTitle,
+//             body:newBody,
+//             message:newBody,
+//             id:req.body.sendPushRequest.control_message.notid,
+//             notId:req.body.sendPushRequest.control_message.notid,
+//             act_class:req.body.sendPushRequest.app.fcm.class_name,
+//             act_pkg:req.body.sendPushRequest.app.fcm.package_name,
+//             url:req.body.sendPushRequest.control_message.url,
+//             style:"picture",
+//             summaryText:newBody,
+//             image:req.body.sendPushRequest.control_message.image_url,
+//             inngage_data:""
+//     }
+//     };
+//     let message = JSON.stringify(request);
+//         //console.log(req.body.sendPushRequest.subscriber.registration);
+//     axios.defaults.headers = {
+//         'Content-Type': 'application/json',
+//         Authorization: "key= "+req.body.sendPushRequest.app.fcm.google_api_key
+//     };
+//      axios.post('https://fcm.googleapis.com/fcm/send',
+//          message
+//      )
+//       .then(function (response) {
+//
+//           if(response.data.success===1)
+//           {    p_status_id = response.data.success;
+//               p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
+//               saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+//               //saveResponse2DB(status_id,message_status);
+//               res.status(200).json({
+//                   SendPushResponse:{
+//                       //success : response.data,
+//                       //failure : response.data.failure,
+//                       status_details:p_status_details
+//                   }
+//
+//
+//               });
+//
+//           } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
+//               p_status_id = '3';
+//               p_status_details=response.data.results[0]["error"];
+//               saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+//               res.status(200).json({
+//                   SendPushResponse:{
+//
+//                       status_details:response.data.results[0]["error"],
+//                       status_id : p_status_id
+//                   }
+//               });
+//
+//           } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
+//               {
+//                   p_status_id = '9';
+//                   p_status_details=response.data.results[0]["error"];
+//                   saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+//                   res.status(200).json({
+//                       SendPushResponse:{
+//                           status_details:response.data.results[0]["error"],
+//                           status_id : p_status_id
+//                       }
+//                   });
+//           }
+//                 })
+//       .catch(function (err) {
+//           p_status_id = '99';
+//
+//           if(err.message === "Request failed with status code 401")
+//           {
+//               p_status_details="Request failed with status code 401 , Verify the FCM API key.";
+//               saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+//               res.status(200).json({
+//                   SendPushResponse:{
+//                       Error:err.message,
+//                       Reason:'Verify the FCM API key.',
+//                       Key:req.body.sendPushRequest.app.fcm.google_api_key,
+//                       status_id:p_status_id
+//                   }
+//               });
+//           } else
+//           {
+//               p_status_details=err.stack;
+//               saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+//               res.status(200).json({
+//                   SendPushRespnse:{
+//                       Error:err.message,
+//                       Details:err.stack,
+//                       Reason:p_status_details,
+//                       status_id:p_status_id
+//                   }
+//               });
+//           }
+//           //console.log("log before saving :" + p_control_message_id);
+//
+//
+//         //console.log(err.data);
+//
+//
+//       });
+//     };
 
 exports.checkCustomFields = (req,res,next) => {
     const  flag = req.body.sendPushRequest.control_message.personalised_flag ;
@@ -413,127 +452,76 @@ exports.checkRequestFileds = (req,res,next) => {
 exports.send2APNS = (req,res,next) => {
     let baseUrl = "https://app.inngage.com.br/resources/uploads/certificates_pem/";
    // let deviceToken = "25327d23d4c23a1b09199bc079fc72be3b2baa14fbc377963a5638dff0eca0ef";
-    let deviceToken = "789ea8e1e3d0398506773e99d0abeabb8292a87204a21d7461508411b4862a56";
+    //let deviceToken = "789ea8e1e3d0398506773e99d0abeabb8292a87204a21d7461508411b4862a56";
+    let deviceToken = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     //console.log(__dirname);
     //let kk = __dirname+'/key.pem';
-    let kk = __dirname+'/icarros_key.pem';
+    let key = __dirname+'/icarros_key.pem';
    // let ff = __dirname+'/inngage_apns.pem';
-    let ff = __dirname+'/icarros.pem';
-    const i = axios.create({
+    let cert = __dirname+'/icarros.pem';
 
-        httpsAgent: new https.Agent({
-            cert: ff,
-            key: kk,
-            passphrase: 'icarros123',
-            rejectUnauthorized: false
-        })
+
+
+    const options = {
+        cert:cert,
+        key:cert,
+       // passphrase:"t0k3nl@b",
+        passphrase:"icarros123",
+        production: true,
+
+    };
+
+    let apnProvider = new apn.Provider(options);
+
+    let notification = new apn.Notification({
+
+        //topic: 'com.nostrostudio.bodytech',
+        //topic: 'br.com.icarros',
+        //apns_id:"2568962fgfdfg",
+
+            alert: {
+                title: 'Eaiii ',
+                body: 'Click me Please :/ '
+            },
+            "mutable-content": 1,
+            sound: "default",
+            badge: 1,
+            category: "br.com.inngage.Custom-Notification-Interface.notification",
+            //topic: 'br.com.icarros',
+
+        otherCustomURL: "https://www.testufo.com/images/testufo-banner.png",
+        url: "https://youtube.com/",
+        provider: "inngage",
+        id:"",
+        inngage_data:""
+
+    });
+    notification.topic="br.com.icarros";
+    apnProvider.send(notification, deviceToken).then(response => {
+        if(!isEmpty(response.sent))
+        {
+            res.status(200).json({
+
+                SendPushResponse:response.sent,
+                request : notification
+
+
+            });
+            apnProvider.shutdown();
+        }
+        else {
+                res.status(500).json({
+
+                SendPushResponse:response
+
+                });
+        }
+            apnProvider.shutdown();
+
     });
 
 
-    // const options = {
-    //     cert:ff,
-    //     key:kk,
-    //    // passphrase:"t0k3nl@b",
-    //     passphrase:"icarros123",
-    //     production: true
-    // };
-
-    // let apnProvider = new apn.Provider(options);
-    // //const deviceTokens = req.body.deviceTokens;
-    //
-    // let notification = new apn.Notification({
-    //
-    //     //topic: 'com.nostrostudio.bodytech',
-    //     //topic: 'br.com.icarros',
-    //     //apns_id:"2568962fgfdfg",
-    //
-    //     aps:{
-    //         alert: {
-    //             title: 'Eaiii Leticia',
-    //             body: 'Click me Please :/ '
-    //         },
-    //         "mutable-content":1,
-    //         sound:"default",
-    //         provider:"inngage",
-    //         badge:1,
-    //         url:"https://youtube.com/",
-    //         category:"br.com.inngage.Custom-Notification-Interface.notification",
-    //         otherCustomURL:"https://www.testufo.com/images/testufo-banner.png",
-    //         topic: 'br.com.icarros'
-    //     }
-    //
-    //
-    //
-    //
-    //
-    // });
-    //
-    // apnProvider.send(notification, deviceToken).then(response => {
-    //     if(!isEmpty(response.sent))
-    //     {
-    //         res.status(200).json({
-    //
-    //             SendPushResponse:response.sent,
-    //             request : notification
-    //
-    //
-    //         });
-    //         apnProvider.shutdown();
-    //     }
-    //     else {
-    //             res.status(500).json({
-    //
-    //             SendPushResponse:response.failed
-    //
-    //             });
-    //     }
-    //         apnProvider.shutdown();
-    //
-    // });
-
-
-    i.defaults.headers = {
-        'Content-Type': 'application/json',
-        //Authorization: 'key = AIzaSyDfrO8W79ZfftYanTffpc2BTxvyydpIlBo'
-        //Authorization: req.headers.authorization,
-        "apns-topic": "br.com.icarros"
-    };
-    i.post('https://api.push.apple.com/3/device/789ea8e1e3d0398506773e99d0abeabb8292a87204a21d7461508411b4862a56',
-        {
-            aps:{
-                alert:{
-                    body:"body",
-                    title:"title"
-                },
-                "mutable-content" : 1,
-                sound:"default",
-                provider:"inngage",
-                id:"messageID",
-                badge:1,
-                url:"url",
-                inngage_data:"",
-                category:"br.com.inngage.Custom-Notification-Interface.notification",
-                otherCustomURL:"ImageURL"
-            }
-
-                }
-    )
-        .then(function (response) {
-            res.status(200).json({
-                SendPushResponse:response
-
-            });
-        })
-        .catch(function (err) {
-            res.status(200).json({
-                err
-                });
-            //console.log(err.data);
-            //console.log(err);
-
-        });
-
-}
+};
 
 let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
     // console.log(p_id);
@@ -599,8 +587,167 @@ let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
 
 };
 
-let send2FCM  =() => {};
-let send2FcmFirebaseiOS =() => {};
-let send2ApnsDev =() => {};
-let send2ApnsProd =() => {};
-let send2iCarros =() => {};
+let send2FCM  =(req,res) => {
+    let newBody ;
+    let newTitle ;
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let p_platform_id  = 1;
+    let p_status_id  = "";
+    let p_status_details  = "";
+    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
+
+
+    if (!req.res.locals.customizedBody)
+    {
+        newTitle = req.body.sendPushRequest.control_message.title;
+        newBody = req.body.sendPushRequest.control_message.body;
+    }
+    else
+    {
+        newTitle = req.res.locals.customizedTitle;
+        newBody = req.res.locals.customizedBody;
+    }
+
+    let request =   {
+        to:req.body.sendPushRequest.subscriber.registration,
+        priority:"high",
+        data:{
+            provider:"inngage",
+            title: newTitle,
+            body:newBody,
+            message:newBody,
+            id:req.body.sendPushRequest.control_message.notid,
+            notId:req.body.sendPushRequest.control_message.notid,
+            act_class:req.body.sendPushRequest.app.fcm.class_name,
+            act_pkg:req.body.sendPushRequest.app.fcm.package_name,
+            url:req.body.sendPushRequest.control_message.url,
+            style:"picture",
+            summaryText:newBody,
+            image:req.body.sendPushRequest.control_message.image_url,
+            inngage_data:""
+        },
+        notification:{
+            provider:"inngage",
+            title: newTitle,
+            body:newBody,
+            message:newBody,
+            id:req.body.sendPushRequest.control_message.notid,
+            notId:req.body.sendPushRequest.control_message.notid,
+            act_class:req.body.sendPushRequest.app.fcm.class_name,
+            act_pkg:req.body.sendPushRequest.app.fcm.package_name,
+            url:req.body.sendPushRequest.control_message.url,
+            style:"picture",
+            summaryText:newBody,
+            image:req.body.sendPushRequest.control_message.image_url,
+            inngage_data:""
+        }
+    };
+    let message = JSON.stringify(request);
+
+    axios.defaults.headers = {
+        'Content-Type': 'application/json',
+        Authorization: "key= "+req.body.sendPushRequest.app.fcm.google_api_key
+    };
+    axios.post('https://fcm.googleapis.com/fcm/send',
+        message
+    )
+        .then(function (response) {
+
+            if(response.data.success===1)
+            {    p_status_id = response.data.success;
+                p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                //saveResponse2DB(status_id,message_status);
+                res.status(200).json({
+                    SendPushResponse:{
+                        //success : response.data,
+                        //failure : response.data.failure,
+                        status_details:p_status_details
+                    }
+
+
+                });
+
+            } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
+                p_status_id = '3';
+                p_status_details=response.data.results[0]["error"];
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+
+                        status_details:response.data.results[0]["error"],
+                        status_id : p_status_id
+                    }
+                });
+
+            } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
+            {
+                p_status_id = '9';
+                p_status_details=response.data.results[0]["error"];
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        status_details:response.data.results[0]["error"],
+                        status_id : p_status_id
+                    }
+                });
+            }
+        })
+        .catch(function (err) {
+            p_status_id = '99';
+
+            if(err.message === "Request failed with status code 401")
+            {
+                p_status_details="Request failed with status code 401 , Verify the FCM API key.";
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        Error:err.message,
+                        Reason:'Verify the FCM API key.',
+                        Key:req.body.sendPushRequest.app.fcm.google_api_key,
+                        status_id:p_status_id
+                    }
+                });
+            } else
+            {
+                p_status_details=err.stack;
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushRespnse:{
+                        Error:err.message,
+                        Details:err.stack,
+                        Reason:p_status_details,
+                        status_id:p_status_id
+                    }
+                });
+            }
+            //console.log("log before saving :" + p_control_message_id);
+
+
+            //console.log(err.data);
+
+
+        });
+
+};
+let send2FcmFirebaseiOS =(req,res) => {
+
+};
+let send2ApnsDev =(req,res,apns_topic) => {
+    // apns sandbox certificate
+
+    let  apple_sandbox_cert_file = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_file;
+    let  apple_sandbox_cert_name = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_name;
+    let  apple_sandbox_cert_pass = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_pass;
+};
+let send2ApnsProd =(req,res,apns_topic) => {
+    // apns prod certificates
+
+    let  apple_prod_cert_file = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_file;
+    let  apple_prod_cert_name = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_name;
+    let  apple_prod_cert_pass = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_pass;
+};
+let send2iCarros =(req,res) => {
+
+};
