@@ -168,12 +168,12 @@ router.post('/v1',(req,res0,next)=>{
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
                                         };
-
+                                        console.log("Sending to Dispatcher...");
                                         axios.post('https://inn-api-new.herokuapp.com/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
-                                                    console.log("Sending to Dispatcher...");
+                                                    
                                                     res0.status(200).json({
                                                         SendPushResponse:response.data
                                                     });

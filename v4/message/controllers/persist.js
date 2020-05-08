@@ -163,7 +163,7 @@ async function sendToEW(control_message_id,notId,subId,appId){
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
-        var retu = axios.post('http://ec2-54-242-108-13.compute-1.amazonaws.com:3000/api/expandWorker/v1',
+        var retu = axios.post('https://inn-api-new.herokuapp.com/api/expandWorker/v1',
         {
             control_message_id: control_message_id,
             notification_id:notId,
