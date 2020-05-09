@@ -1,6 +1,6 @@
 const axios = require('axios').default;
 const apn = require('apn');
-const https = require('https');
+const http = require('https');
 const fs = require('fs');
 const con = require('../connection/DBconnection');
 
@@ -451,34 +451,19 @@ exports.checkRequestFileds = (req,res,next) => {
 
 exports.send2APNS = (req,res,next) => {
     let baseUrl = "https://app.inngage.com.br/resources/uploads/certificates_pem/";
-   // let deviceToken = "25327d23d4c23a1b09199bc079fc72be3b2baa14fbc377963a5638dff0eca0ef";
-    //let deviceToken = "789ea8e1e3d0398506773e99d0abeabb8292a87204a21d7461508411b4862a56";
     let deviceToken = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
-    //console.log(__dirname);
-    //let kk = __dirname+'/key.pem';
     let key = __dirname+'/icarros_key.pem';
-   // let ff = __dirname+'/inngage_apns.pem';
     let cert = __dirname+'/icarros.pem';
-
-
 
     const options = {
         cert:cert,
         key:cert,
-       // passphrase:"t0k3nl@b",
         passphrase:"icarros123",
         production: true,
-
     };
 
     let apnProvider = new apn.Provider(options);
-
     let notification = new apn.Notification({
-
-        //topic: 'com.nostrostudio.bodytech',
-        //topic: 'br.com.icarros',
-        //apns_id:"2568962fgfdfg",
-
             alert: {
                 title: 'Eaiii ',
                 body: 'Click me Please :/ '
@@ -494,26 +479,20 @@ exports.send2APNS = (req,res,next) => {
         provider: "inngage",
         id:"",
         inngage_data:""
-
     });
     notification.topic="br.com.icarros";
     apnProvider.send(notification, deviceToken).then(response => {
         if(!isEmpty(response.sent))
         {
             res.status(200).json({
-
                 SendPushResponse:response.sent,
                 request : notification
-
-
             });
             apnProvider.shutdown();
         }
         else {
                 res.status(500).json({
-
                 SendPushResponse:response
-
                 });
         }
             apnProvider.shutdown();
@@ -665,8 +644,6 @@ let send2FCM  =(req,res) => {
                         //failure : response.data.failure,
                         status_details:p_status_details
                     }
-
-
                 });
 
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
@@ -863,21 +840,207 @@ let send2FcmFirebaseiOS =(req,res) => {
 
         });
 };
-let send2ApnsDev =(req,res,apns_topic) => {
+let send2ApnsDev  = async (req, res, apns_topic) => {
+
+    let newBody ;
+    let newTitle ;
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let p_platform_id  = 2;
+    let p_status_id  = "";
+    let p_status_details  = "";
+    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
+
+
+    if (!req.res.locals.customizedBody)
+    {
+        newTitle = req.body.sendPushRequest.control_message.title;
+        newBody = req.body.sendPushRequest.control_message.body;
+    }
+    else
+    {
+        newTitle = req.res.locals.customizedTitle;
+        newBody = req.res.locals.customizedBody;
+    }
     // apns sandbox certificate
+    let apple_sandbox_cert_file = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_file;
+    let apple_sandbox_cert_pass = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_pass;
+    let certPath = "https://app.inngage.com.br/resources/uploads/certificates_pem/" + apple_sandbox_cert_file;
+    let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
+    let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-    let  apple_sandbox_cert_file = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_file;
-    let  apple_sandbox_cert_name = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_name;
-    let  apple_sandbox_cert_pass = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_pass;
 
+
+    const certificateRequest = await new Promise((result, rej) => {
+        http.get(certPath, (res) => {
+            res.setEncoding('utf8');
+                    res.on('end', function (body) {
+                        result(body) ;
+                    });
+            });
+    });
+        const certificate = await  Promise.resolve(certificateRequest);
+    const options = {
+        cert: certificate,
+        key: certificate,
+        passphrase: apple_sandbox_cert_pass,
+        production: true,
+    };
+
+    let apnProvider = new apn.Provider(options);
+    let notification = new apn.Notification({
+        alert: {
+            title: newTitle,
+            body: newBody
+        },
+        "mutable-content": 1,
+        sound: "default",
+        badge: 1,
+        category: "br.com.inngage.Custom-Notification-Interface.notification",
+
+
+        otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
+        url: req.body.sendPushRequest.control_message.url,
+        provider: "inngage",
+        id:req.body.sendPushRequest.control_message.notid ,
+        inngage_data: ""
+    });
+    notification.topic = apns_topic;
+    apnProvider.send(notification, deviceTokens).then(response => {
+        if (!isEmpty(response.sent)) {
+            res.status(200).json({
+                SendPushResponse: response.sent,
+                request: notification
+            });
+            apnProvider.shutdown();
+        } else {
+            res.status(500).json({
+                SendPushResponse: response
+            });
+        }
+        apnProvider.shutdown();
+
+    });
 
 };
-let send2ApnsProd =(req,res,apns_topic) => {
+let send2ApnsProd = async (req,res,apns_topic) => {
+    let newBody ;
+    let newTitle ;
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let p_platform_id  = 2;
+    let p_status_id  = "";
+    let p_status_details  = "";
+    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
+
+
+    if (!req.res.locals.customizedBody)
+    {
+        newTitle = req.body.sendPushRequest.control_message.title;
+        newBody = req.body.sendPushRequest.control_message.body;
+    }
+    else
+    {
+        newTitle = req.res.locals.customizedTitle;
+        newBody = req.res.locals.customizedBody;
+    }
+
     // apns prod certificates
 
     let  apple_prod_cert_file = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_file;
-    let  apple_prod_cert_name = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_name;
     let  apple_prod_cert_pass = req.body.sendPushRequest.app.apns.prod.apple_prod_cert_pass;
+    let certPath = "https://app.inngage.com.br/resources/uploads/certificates_pem/" + apple_prod_cert_file;
+    let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
+    let deviceToken = req.body.sendPushRequest.subscriber.registration;
+
+    if (!isEmpty(apple_prod_cert_file) || !isEmpty(apple_prod_cert_pass) || !isEmpty(deviceToken ))
+    {
+        p_status_details= "Certification (file or password ) or device token is missing , Verify and Try Again";
+
+        saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,"99",p_status_details,p_control_message_id);
+        res.status(200).json({
+            SendPushResponse:{
+                status_details:p_status_details,
+                status_id : "99"
+            }
+        });
+    }
+    else {
+
+
+
+    const certificateRequest = await new Promise((result, rej) => {
+        http.get(certPath, (res) => {
+            res.setEncoding('utf8');
+            res.on('end', function (body) {
+                result(body) ;
+            });
+        });
+    });
+    const certificate = await  Promise.resolve(certificateRequest);
+    const options = {
+        cert: certificate,
+        key: certificate,
+        passphrase: apple_prod_cert_pass,
+        production: true,
+    };
+
+    let apnProvider = new apn.Provider(options);
+    let notification = new apn.Notification({
+        alert: {
+            title: newTitle,
+            body: newBody
+        },
+        "mutable-content": 1,
+        sound: "default",
+        badge: 1,
+        category: "br.com.inngage.Custom-Notification-Interface.notification",
+
+
+        otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
+        url: req.body.sendPushRequest.control_message.url,
+        provider: "inngage",
+        id:req.body.sendPushRequest.control_message.notid ,
+        inngage_data: ""
+    });
+    notification.topic = apns_topic;
+    apnProvider.send(notification, deviceTokens).then(response => {
+        if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
+            p_status_id = "1";
+            p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
+            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            res.status(200).json({
+                SendPushResponse:{
+                    status_id : p_status_id,
+                    status_details:p_status_details
+                }
+            });
+            apnProvider.shutdown();
+        }
+        else if (!isEmpty(response.failed)  && (response.failed[0].status!=="200") )
+            {
+                p_status_id = '3';
+                let responseStatus = response.failed[0].status;
+                p_status_details= response.failed[0].response.reason;
+
+            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            res.status(200).json({
+                SendPushResponse:{
+                    responseStatus,
+                    status_details:p_status_details,
+                    status_id : p_status_id
+                }
+            });
+                apnProvider.shutdown();
+        }
+        else
+        {
+
+        }
+
+
+    });
+    }
 };
 let send2iCarros =(req,res) => {
 
