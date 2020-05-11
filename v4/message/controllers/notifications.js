@@ -699,12 +699,6 @@ let send2FCM  =(req,res) => {
                     }
                 });
             }
-            //console.log("log before saving :" + p_control_message_id);
-
-
-            //console.log(err.data);
-
-
         });
 
 };
@@ -1004,7 +998,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
         inngage_data: ""
     });
     notification.topic = apns_topic;
-    apnProvider.send(notification, deviceTokens).then(response => {
+    apnProvider.send(notification, deviceToken).then(response => {
         if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
             p_status_id = "1";
             p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
