@@ -13,7 +13,7 @@ module.exports = {
   production: {
    user: "ubuntu",
    host: "ec2-54-242-108-13.compute-1.amazonaws.com",
-   key: "./kp-nuvoli-inngage.pem",
+   key: "kp-nuvoli-inngage.pem",
    ref: "origin/master",
    repo: "https://inn-node-api-user:!@#123Mudar@bitbucket.org/inngage/inn-node-api.git",
    path: "/home/ubuntu/app/inn-node-api",
