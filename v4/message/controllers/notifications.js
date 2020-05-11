@@ -1086,7 +1086,7 @@ let send2iCarros =(req,res) => {
     let message = JSON.stringify(request);
 
     axios.defaults.headers = {
-        'Content-Type': 'application/json',
+        'Content-Type':'application/json',
         Authorization: "key= "+req.body.sendPushRequest.app.fcm.google_api_key
     };
     axios.post('https://fcm.googleapis.com/fcm/send',
