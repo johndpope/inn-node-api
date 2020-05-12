@@ -947,7 +947,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-    if (!isEmpty(apple_prod_cert_file) || !isEmpty(apple_prod_cert_pass) || !isEmpty(deviceToken ))
+    if (isEmpty(apple_prod_cert_file) || isEmpty(apple_prod_cert_pass) || isEmpty(deviceToken ))
     {
         p_status_details= "Certification (file or password ) or device token is missing , Verify and Try Again";
 
