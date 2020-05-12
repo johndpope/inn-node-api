@@ -37,7 +37,7 @@ exports.send = (req,res,next) =>{
 
     //if the app is in production
     let is_production =req.body.sendPushRequest.app.production;
-    let apns_topic = req.body.sendPushRequest.app.apns_topic;
+    let apns_topic = req.body.sendPushRequest.app.apns.apns_topic;
 
         switch (true)
         {
@@ -881,7 +881,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
         const certificateRequest = await new Promise((result, rej) => {
             http.get(certPath, (res) => {
                 res.setEncoding('utf8');
-                res.on('end', function (body) {
+                res.on('data', function (body) {
                     result(body) ;
                 });
             });
@@ -975,10 +975,11 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-    if ((isEmpty(apple_prod_cert_file)) || (isEmpty(apple_prod_cert_pass)))
+    if ((isEmpty(apple_prod_cert_file)) || (isEmpty(apple_prod_cert_pass)) || (isEmpty(apns_topic)))
     {
-        p_status_details= "Certification (file or password )  is missing , Verify and Try Again";
-
+        p_status_details= "Certification (file or password or apns_topic)  is missing , Verify and Try Again";
+        console.log("entering  empty");
+        console.log(apns_topic);
         saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,"99",p_status_details,p_control_message_id);
         res.status(200).json({
             SendPushResponse:{
@@ -987,11 +988,13 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             }
         });
     }
-    else if (!isEmpty(apple_prod_cert_file) && !isEmpty(apple_prod_cert_pass)) {
+    else if (!isEmpty(apple_prod_cert_file) && !isEmpty(apple_prod_cert_pass) && !(isEmpty(apns_topic))) {
+        console.log("entering not empty");
+        console.log(apns_topic);
     const certificateRequest = await new Promise((result, rej) => {
         http.get(certPath, (res) => {
             res.setEncoding('utf8');
-            res.on('end', function (body) {
+            res.on('data', function (body) {
                 result(body) ;
             });
         });
@@ -1005,24 +1008,43 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     };
 
     let apnProvider = new apn.Provider(options);
-    let notification = new apn.Notification({
-        alert: {
-            title: newTitle,
-            body: newBody
-        },
-        "mutable-content": 1,
-        sound: "default",
-        badge: 1,
-        category: "br.com.inngage.Custom-Notification-Interface.notification",
-
-
-        otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
-        url: req.body.sendPushRequest.control_message.url,
-        provider: "inngage",
-        id:req.body.sendPushRequest.control_message.notid ,
-        inngage_data: ""
-    });
+    let notification = new apn.Notification();
+    //     {
+    //     alert: {
+    //         title: newTitle,
+    //         body: newBody
+    //     },
+    //     "mutable-content":true,
+    //     sound: "default",
+    //     badge: 1,
+    //     category: "br.com.inngage.Custom-Notification-Interface.notification",
+    //     otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
+    //     url: req.body.sendPushRequest.control_message.url,
+    //     provider: "inngage",
+    //     Notid:req.body.sendPushRequest.control_message.notid ,
+    //     inngage_data: ""
+    //
+    // });
+         notification.rawPayload = {
+            aps: {
+                alert: {
+                    title: newTitle,
+                    body: newBody
+                },
+                "mutable-content":true,
+                sound: "default",
+                badge: 1,
+                category: "br.com.inngage.Custom-Notification-Interface.notification",
+                otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
+                url: req.body.sendPushRequest.control_message.url,
+                provider: "inngage",
+                id:req.body.sendPushRequest.control_message.notid ,
+                inngage_data: ""
+            }
+        };
     notification.topic = apns_topic;
+    notification.image=req.body.sendPushRequest.control_message.image_url;
+    notification.urlArgs=req.body.sendPushRequest.control_message.url;
     apnProvider.send(notification, deviceToken).then(response => {
         if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
             p_status_id = "1";
