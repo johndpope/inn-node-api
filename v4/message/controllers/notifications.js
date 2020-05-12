@@ -699,12 +699,6 @@ let send2FCM  =(req,res) => {
                     }
                 });
             }
-            //console.log("log before saving :" + p_control_message_id);
-
-
-            //console.log(err.data);
-
-
         });
 
 };
@@ -953,7 +947,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-    if (!isEmpty(apple_prod_cert_file) || !isEmpty(apple_prod_cert_pass) || !isEmpty(deviceToken ))
+    if (isEmpty(apple_prod_cert_file) || isEmpty(apple_prod_cert_pass) || isEmpty(deviceToken ))
     {
         p_status_details= "Certification (file or password ) or device token is missing , Verify and Try Again";
 
@@ -1004,7 +998,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
         inngage_data: ""
     });
     notification.topic = apns_topic;
-    apnProvider.send(notification, deviceTokens).then(response => {
+    apnProvider.send(notification, deviceToken).then(response => {
         if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
             p_status_id = "1";
             p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
@@ -1043,5 +1037,124 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     }
 };
 let send2iCarros =(req,res) => {
+    let newBody ;
+    let newTitle ;
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let p_subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let p_platform_id  = 1;
+    let p_status_id  = "";
+    let p_status_details  = "";
+    let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
 
+
+    if (!req.res.locals.customizedBody)
+    {
+        newTitle = req.body.sendPushRequest.control_message.title;
+        newBody = req.body.sendPushRequest.control_message.body;
+    }
+    else
+    {
+        newTitle = req.res.locals.customizedTitle;
+        newBody = req.res.locals.customizedBody;
+    }
+
+    let request =   {
+        to:req.body.sendPushRequest.subscriber.registration,
+        priority:"high",
+        data:{
+            provider:"inngage",
+            title: newTitle,
+            body:newBody,
+            message:newBody,
+            id:req.body.sendPushRequest.control_message.notid,
+            notId:req.body.sendPushRequest.control_message.notid,
+            act_class:req.body.sendPushRequest.app.fcm.class_name,
+            act_pkg:req.body.sendPushRequest.app.fcm.package_name,
+            url:req.body.sendPushRequest.control_message.url,
+            style:"picture",
+            summaryText:newBody,
+            image:req.body.sendPushRequest.control_message.image_url,
+            inngage_data:""
+        }
+    };
+    let message = JSON.stringify(request);
+
+    axios.defaults.headers = {
+        'Content-Type':'application/json',
+        Authorization: "key= "+req.body.sendPushRequest.app.fcm.google_api_key
+    };
+    axios.post('https://fcm.googleapis.com/fcm/send',
+        message
+    )
+        .then(function (response) {
+
+            if(response.data.success===1)
+            {    p_status_id = response.data.success;
+                p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ( Custom iCarros) ) com sucesso.";
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                //saveResponse2DB(status_id,message_status);
+                res.status(200).json({
+                    SendPushResponse:{
+                        //success : response.data,
+                        //failure : response.data.failure,
+                        status_details:p_status_details
+                    }
+
+
+                });
+
+            } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
+                p_status_id = '3';
+                p_status_details=response.data.results[0]["error"];
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+
+                        status_details:response.data.results[0]["error"],
+                        status_id : p_status_id
+                    }
+                });
+
+            } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
+            {
+                p_status_id = '9';
+                p_status_details=response.data.results[0]["error"];
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        status_details:response.data.results[0]["error"],
+                        status_id : p_status_id
+                    }
+                });
+            }
+        })
+        .catch(function (err) {
+            p_status_id = '99';
+
+            if(err.message === "Request failed with status code 401")
+            {
+                p_status_details="Request failed with status code 401 , Verify the FCM API key.";
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        Error:err.message,
+                        Reason:'Verify the FCM API key.',
+                        Key:req.body.sendPushRequest.app.fcm.google_api_key,
+                        status_id:p_status_id
+                    }
+                });
+            } else
+            {
+                p_status_details=err.stack;
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushRespnse:{
+                        Error:err.message,
+                        Details:err.stack,
+                        Reason:p_status_details,
+                        status_id:p_status_id
+                    }
+                });
+            }
+        });
 };
