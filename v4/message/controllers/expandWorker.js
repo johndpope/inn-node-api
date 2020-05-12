@@ -22,7 +22,7 @@ router.post('/v1',(req,res0,next)=>{
 
         let app_config,not_data,user_data,user_customfields;
 
-        con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
+        con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
             if(err) throw err;
             app_config = res[0];
             user_data = res[0];
@@ -139,8 +139,8 @@ router.post('/v1',(req,res0,next)=>{
                                                             apple_prod_cert_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass:"",
                                                         },
                                                         sandbox:{
-                                                            apple_sandbox_cert_name:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                            apple_sandbox_cert_file:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                            apple_sandbox_cert_file:app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
+                                                            apple_sandbox_cert_name:app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
                                                             apple_sandbox_cert_pass:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:""
                                                         },
                                                         apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
@@ -148,7 +148,7 @@ router.post('/v1',(req,res0,next)=>{
                                                     fcm:{
                                                         google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
                                                         package_name:app_config.package_name != null ? app_config.package_name:"",
-                                                        class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                        class_name:app_config.class_name != null ? app_config.class_name:"",
                                                     },
                                                     
                                                 },
@@ -164,7 +164,7 @@ router.post('/v1',(req,res0,next)=>{
                                             }
                                             
                                             await updateStatus3TO4(control_message_id);
-                                            // console.log("json = %j",sendPushRequest);
+                                            console.log("json = %j",sendPushRequest);
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
                                         };
@@ -219,7 +219,7 @@ router.post('/v3',(req,ress,next)=>{
         
                     let app_config,not_data,user_data,user_customfields;
 
-                    con.query(`SELECT ac.apns_topic,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
+                    con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
                         if(err) throw err;
                         app_config = res[0];
                 
@@ -302,8 +302,8 @@ router.post('/v3',(req,ress,next)=>{
                                                                     apple_prod_cert_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass:"",
                                                                 },
                                                                 sandbox:{
-                                                                    apple_sandbox_cert_name:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
-                                                                    apple_sandbox_cert_file:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:"",
+                                                                    apple_sandbox_cert_file:app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
+                                                                    apple_sandbox_cert_name:app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
                                                                     apple_sandbox_cert_pass:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:""
                                                                 },
                                                                 apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
@@ -311,7 +311,7 @@ router.post('/v3',(req,ress,next)=>{
                                                             fcm:{
                                                                 google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
                                                                 package_name:app_config.package_name != null ? app_config.package_name:"",
-                                                                class_name:app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                                                                class_name:app_config.class_name != null ? app_config.class_name:"",
                                                             },
                                                             
                                                         },
