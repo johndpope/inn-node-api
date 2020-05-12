@@ -57,7 +57,7 @@ exports.send = (req,res,next) =>{
                                 send2FcmFirebaseiOS(req,res);
                                 break;
 
-                    case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="1")):
+                    case ((firebase_ios===0) && (platform_id === "2") && (is_production==="1")):
                         send2ApnsProd(req,res,apns_topic);
                         break;
 
@@ -987,7 +987,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             }
         });
     }
-    else {
+    else if (!(isEmpty(apple_prod_cert_file)) && !(isEmpty(apple_prod_cert_pass)) && !(isEmpty(deviceToken))) {
     const certificateRequest = await new Promise((result, rej) => {
         http.get(certPath, (res) => {
             res.setEncoding('utf8');
