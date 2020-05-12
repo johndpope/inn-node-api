@@ -1027,12 +1027,6 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             });
                 apnProvider.shutdown();
         }
-        else
-        {
-
-        }
-
-
     });
     }
 };
