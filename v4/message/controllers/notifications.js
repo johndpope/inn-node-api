@@ -57,7 +57,7 @@ exports.send = (req,res,next) =>{
                                 send2FcmFirebaseiOS(req,res);
                                 break;
 
-                    case ((firebase_ios===0) && (platform_id === "2") && (is_production==="1")):
+                    case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="1")):
                         send2ApnsProd(req,res,apns_topic);
                         break;
 
@@ -975,9 +975,9 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-    if ((isEmpty(apple_prod_cert_file)) || (isEmpty(apple_prod_cert_pass)) || (isEmpty(deviceToken)))
+    if ((isEmpty(apple_prod_cert_file)) || (isEmpty(apple_prod_cert_pass)))
     {
-        p_status_details= "Certification (file or password ) or device token is missing , Verify and Try Again";
+        p_status_details= "Certification (file or password )  is missing , Verify and Try Again";
 
         saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,"99",p_status_details,p_control_message_id);
         res.status(200).json({
@@ -987,7 +987,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             }
         });
     }
-    else if (!(isEmpty(apple_prod_cert_file)) && !(isEmpty(apple_prod_cert_pass)) && !(isEmpty(deviceToken))) {
+    else if (!isEmpty(apple_prod_cert_file) && !isEmpty(apple_prod_cert_pass)) {
     const certificateRequest = await new Promise((result, rej) => {
         http.get(certPath, (res) => {
             res.setEncoding('utf8');
