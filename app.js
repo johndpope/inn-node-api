@@ -2,9 +2,11 @@ const express = require('express');
 const app  = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 //const mongoose = require('mongoose');
 //const router = require("routes");
 
+app.use(cors());
 
 const messagingRoutes = require('./v4/message/routes/notifications');
 
