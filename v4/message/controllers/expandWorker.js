@@ -206,36 +206,37 @@ router.post('/v3',(req,ress,next)=>{
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
-
-        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 0;",(err0,res0)=>{
+        console.log("started v3")
+        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 9 limit 5",(err0,res0)=>{
             if(err0) throw err0;
-
+            
+            Object.keys(res0).forEach(async function(key){
+                await updateStatus0TO1(res0[key].notification_id);
+            })
                 Object.keys(res0).forEach(function(key){
                     var row = res0[key];
-                    const app_id= row.app_id;
+                    const app_id= "161";
+                    // const app_id= row.app_id;
                     const control_message_id = row.control_message_id;
                     const notification_id = row.notification_id;
-                    const subscriber_id = row.subscriber_id;
-        
+                    const subscriber_id = "9130114";
+                    // const subscriber_id = row.subscriber_id;
                     let app_config,not_data,user_data,user_customfields;
 
                     con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
                         if(err) throw err;
                         app_config = res[0];
-                
                         con.query(`SELECT title, body ,url_push, img_push, url_type, status
                         FROM control_message
                         WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                             if(err2) throw err2;
                             not_data = res2[0];
-                                                    
                             user_data = res[0];
                             con.query(`SELECT  acf.custom_field_name, scf.value 
                             FROM subscriber_customfield scf JOIN app_customfield acf ON acf.custom_field_id = scf.app_custom_field_id 
                             WHERE subscriber_id = ${subscriber_id};`,(err4,res4)=>{
                                 if(err) throw err;
                                 user_customfields = res4;
-                                    
                                 var custom_fields = {};
                                 Object.keys(res4).forEach(function(key){
                                     var row = res4[key];
@@ -261,14 +262,12 @@ router.post('/v3',(req,ress,next)=>{
                                                     events[eve_name] = eve_value
                                                 });
                                                 
-                
                                                 con.query(`Select * from control_message where id_control_message = ${control_message_id} 
                                                     AND (body LIKE '%|*%*|%'
                                                     OR body LIKE '%{{%}}%'
                                                     OR title LIKE '%|*%*|%'
                                                     OR title LIKE '%{{%}}%');`, async (err6,res6)=>{
                                                     if(err6) throw err6;
-
                                                     var is_prod = await getIsProd(app_id);
 
                                                     var per_flag = 0;
@@ -276,6 +275,7 @@ router.post('/v3',(req,ress,next)=>{
                                                     per_flag = JSON.stringify(per_flag);
                                                     
                                                     var sendPushRequest = {
+
                                                         control_message: {
                                                             control_message_id: control_message_id,
                                                             title: not_data.title,
@@ -318,23 +318,23 @@ router.post('/v3',(req,ress,next)=>{
                                                         subscriber: {
                                                             subscriber_id: subscriber_id,
                                                             registration: user_data.registration,
-                                                            platform_id: JSON.stringify(user_data.platform_id),
-                                                            phone: ""
+                                                            phone: "",
+                                                            platform_id: JSON.stringify(user_data.platform_id)
                                                         },
                                                         custom_fields,
-            
+        
                                                         events
                                                     }
                                                     
                                                     await updateStatus3TO4(control_message_id);
-                                                    // console.log(sendPushRequest);
+                                                    // console.log("json = %j ",sendPushRequest);
                                                     console.log("sending message to dispatcher....");
                                                     axios.post('https://inn-api-new.herokuapp.com/api/message',
                                                     {sendPushRequest}
                                                     )
-                                                    .then(response => {
+                                                    .then(async response => {
                                                         console.log(response.data);
-                                                        console.log(response.data.SendPushResponse.results);
+                                                        await updateStatus1TO9(notification_id);
                                                     })
                                                     .catch( er => {
                                                         console.log(er.SendPushResponse);
@@ -349,6 +349,7 @@ router.post('/v3',(req,ress,next)=>{
         })
         console.log("ending connection");
         connection.release();
+        console.log("finished v3");
     })
 
     ress.status(200).json({
@@ -367,6 +368,29 @@ async function getIsProd(app_id){
     var ans = Promise.resolve(sql);
     return sql[0].is_production;
 }
+
+async function updateStatus0TO1(not_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 10 where message_status_id = 9 AND id = ${not_id}`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    console.log("message_log_insert "+not_id+" updated from 0 to 1");
+    var r = Promise.resolve(sql);
+}
+
+async function updateStatus1TO9(not_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 11 where message_status_id = 10 AND id = ${not_id}`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    console.log("message_log_insert "+not_id+" updated from 1 to 9");
+    var r = Promise.resolve(sql);
+}
+
 
 async function updateStatus3TO4(CM_id){
     const sql = await new Promise((res,rej)=>{
