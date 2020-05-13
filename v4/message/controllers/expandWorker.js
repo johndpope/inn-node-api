@@ -207,20 +207,20 @@ router.post('/v3',(req,ress,next)=>{
             'Content-Type': 'application/json'
         };
         console.log("started v3")
-        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 9 limit 5",(err0,res0)=>{
+        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 0 limit 10000",(err0,res0)=>{
             if(err0) throw err0;
             
-            Object.keys(res0).forEach(async function(key){
-                await updateStatus0TO1(res0[key].notification_id);
-            })
+            // Object.keys(res0).forEach(async function(key){
+            //     await updateStatus0TO1(res0[key].notification_id);
+            // })
                 Object.keys(res0).forEach(function(key){
                     var row = res0[key];
-                    const app_id= "161";
-                    // const app_id= row.app_id;
+                    // const app_id= "161";
+                    const app_id= row.app_id;
                     const control_message_id = row.control_message_id;
                     const notification_id = row.notification_id;
-                    const subscriber_id = "9130114";
-                    // const subscriber_id = row.subscriber_id;
+                    // const subscriber_id = "9130114";
+                    const subscriber_id = row.subscriber_id;
                     let app_config,not_data,user_data,user_customfields;
 
                     con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
@@ -334,7 +334,7 @@ router.post('/v3',(req,ress,next)=>{
                                                     )
                                                     .then(async response => {
                                                         console.log(response.data);
-                                                        await updateStatus1TO9(notification_id);
+                                                        // await updateStatus1TO9(notification_id);
                                                     })
                                                     .catch( er => {
                                                         console.log(er.SendPushResponse);
