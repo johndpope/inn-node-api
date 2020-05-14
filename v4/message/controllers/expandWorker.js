@@ -208,7 +208,7 @@ router.post('/v3',(req,ress,next)=>{
         };
         console.log("started v3");
         const ff = await new Promise(async (res70,rej) => {
-            con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 9 limit 5",async (err0,res0)=>{
+            con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 0 LIMIT 10000",async (err0,res0)=>{
                 if(err0) throw err0;
                 Object.keys(res0).forEach(async function(key){
                     await updateStatus0TO1(res0[key].notification_id);
