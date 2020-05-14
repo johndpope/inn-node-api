@@ -210,9 +210,9 @@ router.post('/v3',(req,ress,next)=>{
         const ff = await new Promise(async (res70,rej) => {
             con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE mli.message_status_id = 9 limit 5",async (err0,res0)=>{
                 if(err0) throw err0;
-                // Object.keys(res0).forEach(async function(key){
-                //     await updateStatus0TO1(res0[key].notification_id);
-                // })
+                Object.keys(res0).forEach(async function(key){
+                    await updateStatus0TO1(res0[key].notification_id);
+                });
                 
                 const rf = await new Promise((res80,rej) => {
                     var rList = []
@@ -337,7 +337,7 @@ router.post('/v3',(req,ress,next)=>{
                                                             )
                                                             .then(async response => {
                                                                 return  response.data;
-                                                                // await updateStatus1TO9(notification_id);
+                                                                 await updateStatus1TO9(notification_id);
                                                             })
                                                             .catch( er => {
                                                                 console.log(er.SendPushResponse);
@@ -383,7 +383,7 @@ async function getIsProd(app_id){
 
 async function updateStatus0TO1(not_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 10 where message_status_id = 9 AND id = ${not_id}`,(err,row)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 1 where message_status_id = 0 AND id = ${not_id}`,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
@@ -394,7 +394,7 @@ async function updateStatus0TO1(not_id){
 
 async function updateStatus1TO9(not_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 11 where message_status_id = 10 AND id = ${not_id}`,(err,row)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id = ${not_id}`,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
