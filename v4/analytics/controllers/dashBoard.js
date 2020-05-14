@@ -70,6 +70,10 @@ router.post('/audience',async(req,res,next)=>{
 
 router.post('/',async (req,res,next)=>{
     var mods = req.body["modules[]"];
+    
+    if(typeof(mods) === 'string') mods = [mods];
+
+
     if(mods == undefined) mods = req.body.modules;
     
     const app_token = req.body.app_token;
