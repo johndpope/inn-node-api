@@ -215,6 +215,11 @@ router.post('/v3',(req,ress,next)=>{
                 Object.keys(res0).forEach(async function(key){
                     l.push(res0[key].notification_id);
                 });
+                if(l.length == 0){
+                    return ress.status(200).json({
+                        SendPushResponse: "There are no messages available to be sent"
+                    })
+                }
                 await updateStatus0TO1All(l);
                 const rf = await new Promise((res80,rej) => {
                     var rList = []
