@@ -209,11 +209,13 @@ router.post('/v3',(req,ress,next)=>{
         console.log("started v3");
         const ff = await new Promise(async (res70,rej) => {
             con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 10000",async (err0,res0)=>{
+
                 if(err0) throw err0;
+                var l =[];
                 Object.keys(res0).forEach(async function(key){
-                    await updateStatus0TO1(res0[key].notification_id);
+                    l.push(res0[key].notification_id);
                 });
-                
+                await updateStatus0TO1All(l);
                 const rf = await new Promise((res80,rej) => {
                     var rList = []
                     Object.keys(res0).forEach(async function(key,idx,array){
@@ -416,5 +418,14 @@ async function updateStatus3TO4(CM_id){
     var r = Promise.resolve(sql);
 }
 
-
+async function updateStatus0TO1All(list){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 1 where message_status_id = 0 AND id IN (${list})`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    console.log("UPDATED STATUS TO 11 OF "+list);
+    var r = Promise.resolve(sql);
+}
 module.exports = router;
