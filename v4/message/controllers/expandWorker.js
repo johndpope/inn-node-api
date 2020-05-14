@@ -343,7 +343,6 @@ router.post('/v3',(req,ress,next)=>{
                                                             {sendPushRequest}
                                                             )
                                                             .then(async response => {
-                                                                 await updateStatus1TO9(notification_id);
                                                                     return  response.data;
                                                             })
                                                             .catch( er => {
@@ -362,6 +361,7 @@ router.post('/v3',(req,ress,next)=>{
                             res80(rList)
                     });
                 })
+                await updateStatus1TO9All(l);
                 res70(rf)
             })
         })
@@ -430,7 +430,18 @@ async function updateStatus0TO1All(list){
             res(JSON.parse(JSON.stringify(row)));
         })
     });
-    console.log("UPDATED STATUS TO 11 OF "+list);
+    console.log("UPDATED STATUS TO 1 OF "+list);
+    var r = Promise.resolve(sql);
+}
+
+async function updateStatus1TO9All(list){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id IN (${list})`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    console.log("UPDATED STATUS TO 9 OF "+list);
     var r = Promise.resolve(sql);
 }
 module.exports = router;
