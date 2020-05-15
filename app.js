@@ -41,7 +41,7 @@ app.use('/api/message', messagingRoutes);
 app.use('/api/expandWorker',expandWorkerRoute);
 
 // Route to handle the resquest on the dashBoard
-app.use('/api/analytics/dashboard',dashBoardRoutes);
+app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
 
 
 
