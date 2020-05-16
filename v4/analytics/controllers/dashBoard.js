@@ -3,8 +3,77 @@ const router = express.Router();
 const numeral = require('numeral');
 var con = require('../../message/connection/DBconnection');
 
+router.post('/automation',async(req,res,next)=>{
+    const appToken = req.body.app_token;
+    const automation_id = req.body.automation_id;
+    const appId = await getAppId(appToken);
+
+    var autoData = [];
+    autoData = await getAutomationPerformance(automation_id);
+
+    if(autoData.length == 0){
+        return res.status(200).json({
+            status:"0",
+            message:"Automation has no Data available"
+        })
+    }
+
+    var dias = [];
+    var sent = [];
+    var open = [];
+    var sumOpen = 0;
+    var sumSent = 0;
+
+    autoData.forEach(a => {
+        var dia = parseInt(a.d[0]+a.d[1]);
+        var mes = parseInt(a.d[3]+a.d[4]);
+        var se = a.sent;
+        var op = a.opened;
+        dias.push({d:dia,m:mes,s:se,o:op})
+    });
+    dias.sort(compareDay);
+    
+    dias.forEach(a=>{
+        sent.push(a.s);
+        open.push(a.o);
+        sumOpen += a.o;
+        sumSent += a.s;
+    })
+
+    res.status(200).json({
+        status:"1",
+        label:dias,
+        sent:sent,
+        open:open,
+        sentSum:sumSent,
+        openSum:sumOpen
+    })
+})
+
+router.post('/audience',async(req,res,next)=>{
+    const appToken = req.body.app_token;
+    const audience_id = req.body.audience_id;
+    const appId = await getAppId(appToken);
+
+    var data = await getAudienceSummary(audience_id,13);
+    if(data.length == 0){
+        return res.status(200).json({
+            status:"0",
+            message:"This app has no audience available"
+        })
+    }
+    // console.log(data)
+    return res.status(200).json({
+        data
+    })
+})
+
 router.post('/',async (req,res,next)=>{
     var mods = req.body["modules[]"];
+    
+    if(typeof(mods) === 'string') mods = [mods];
+
+
     if(mods == undefined) mods = req.body.modules;
     
     const app_token = req.body.app_token;
@@ -47,29 +116,42 @@ router.post('/',async (req,res,next)=>{
 
             var aud = await getAudiences(id);
             var audienceGrowthChart= []
-
-            for(i = 0;i<aud.length;i++){
-                var name = aud[i].audience_name;
-                var d = await getAudienceSummary(aud[i].audience_id,13)
-                audienceGrowthChart[i] = {name : name, summary: d};
+            if(aud.length == 0){
+                res.status(200).json({
+                    audienceGrowthChart:{
+                        status:"0",
+                        message:"This app has no Audiences available"
+                    }
+                })
             }
-
-            return {audienceGrowthChart};
+            
+            var data = await getAudienceSummary(aud[0].audience_id,13);
+            var x = {
+                audiences: aud,
+                firstAudienceData:data
+            }
+            return {audienceGrowthChart:x};
             
 
         } else if(mod == 7){
             
-            var aut = await getAutomations(id);
-            var AutomationPerformanceChart = []
-            var i =0;
-            while(aut[i]){
-                var name = aut[i].name;
-                var d = await getAutomationPerformance(aut[i].id)
-                AutomationPerformanceChart[i] = {name : name, performance: d};
-                ++i;
+            var auts = await getAutomations(id);
+            if(auts.length == 0){
+                return res.status(200).json({
+                    AutomationPerformanceChart:{
+                        status:"0",
+                        message:"This app has no automations available."
+                    }
+                })
             }
 
-            return {AutomationPerformanceChart};
+            var data = await getAutomationPerformance(auts[0].id);
+            console.log(auts[0].id)
+            var x = {
+                automations:auts,
+                firstAutoData:data
+            }
+            return {AutomationPerformanceChart:x};
         }
 
     })
@@ -870,6 +952,16 @@ function getTodayDate(){
 
     yesDate = ano+"-"+mes+"-"+dia;
     return yesDate;
+}
+
+function compareDay(a,b){
+    if(a.m < b.m){
+        return -1;
+    }
+    if(a.d< b.d)
+        return -1;
+    else 
+        return 1
 }
 
 module.exports = router;
