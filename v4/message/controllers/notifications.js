@@ -1085,7 +1085,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             });
                 apnProvider.shutdown();
         }
-    });
+    }).catch(function (err) {
+            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,err,p_control_message_id);
+    }
+    );
     }
 };
 let send2iCarros =(req,res) => {

@@ -337,7 +337,7 @@ router.post('/v3',(req,ress,next)=>{
                                                             }
                                                             
                                                              await updateStatus3TO4(control_message_id);
-                                                            // console.log("json = %j ",sendPushRequest);
+                                                             console.log("json = %j ",sendPushRequest);
                                                             console.log("sending message to dispatcher....");
                                                             var z = await axios.post('https://inn-api-new.herokuapp.com/api/message',
                                                             {sendPushRequest}
