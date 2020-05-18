@@ -926,16 +926,11 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 });
                 apnProvider.shutdown();
             }
-            else if (!isEmpty(response.failed)  && (response.failed[0].status!=="200") )
+            else if (!isEmpty(response.failed[0].response)  && (response.failed[0].status!=="200") )
             {
                 p_status_id = '3';
                 let responseStatus = response.failed[0].status;
-                if(response.failed[0].response.reason){
-                    p_status_details= response.failed[0].response.reason;
-                } else
-                {
-                    p_status_details= response.failed[0].response;
-                }
+                p_status_details= response.failed[0].response.reason;
 
                 saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
                 res.status(200).json({
@@ -947,6 +942,34 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 });
                 apnProvider.shutdown();
             }
+            else  if (!isEmpty(response.failed[0].error))
+            {
+                p_status_id = '9';
+                let responseStatus = response.failed[0].error.jse_shortmsg;
+                p_status_details= response.failed[0].error.message;
+
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        responseStatus,
+                        status_details:p_status_details,
+                        status_id : p_status_id
+                    }
+                });
+                apnProvider.shutdown();
+            }
+        }).catch(function (err) {
+            p_status_id = '99';
+            p_status_details= err;
+
+            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            res.status(200).json({
+                SendPushResponse:{
+                    status_details:p_status_details,
+                    status_id : p_status_id
+                }
+            });
+            apnProvider.shutdown();
         });
     }
 };
