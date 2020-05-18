@@ -169,7 +169,7 @@ router.post('/v1',(req,res0,next)=>{
                                             'Content-Type': 'application/json'
                                         };
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('localhost:3000/api/message',
+                                        axios.post('http://ec2-54-146-3-28.compute-1.amazonaws.com:8080/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -339,7 +339,7 @@ router.post('/v3',(req,ress,next)=>{
                                                              await updateStatus3TO4(control_message_id);
                                                             // console.log("json = %j ",sendPushRequest);
                                                             console.log("sending message to dispatcher....");
-                                                            var z = await axios.post('localhost:3000/api/message',
+                                                            var z = await axios.post('http://ec2-54-146-3-28.compute-1.amazonaws.com:8080/api/message',
                                                             {sendPushRequest}
                                                             )
                                                             .then(async response => {
