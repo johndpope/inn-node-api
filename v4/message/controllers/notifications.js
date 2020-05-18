@@ -930,7 +930,12 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
             {
                 p_status_id = '3';
                 let responseStatus = response.failed[0].status;
-                p_status_details= response.failed[0].response.reason;
+                if(response.failed[0].response.reason){
+                    p_status_details= response.failed[0].response.reason;
+                } else
+                {
+                    p_status_details= response.failed[0].response;
+                }
 
                 saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
                 res.status(200).json({
@@ -1062,7 +1067,13 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             {
                 p_status_id = '3';
                 let responseStatus = response.failed[0].status;
-                p_status_details= response.failed[0].response.reason;
+                if(response.failed[0].response.reason){
+                    p_status_details= response.failed[0].response.reason;
+                } else
+                {
+                    p_status_details= response.failed[0].response;
+                }
+
 
             saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
             res.status(200).json({
