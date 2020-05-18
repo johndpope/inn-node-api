@@ -944,9 +944,24 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
             }
             else  if (!isEmpty(response.failed[0].error))
             {
-                p_status_id = '9';
+                p_status_id = '97';
                 let responseStatus = response.failed[0].error.jse_shortmsg;
                 p_status_details= response.failed[0].error.message;
+
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        responseStatus,
+                        status_details:p_status_details,
+                        status_id : p_status_id
+                    }
+                });
+                apnProvider.shutdown();
+            } else
+            {
+                p_status_id = '98';
+                let responseStatus = response.failed[0];
+                p_status_details= response.failed[0];
 
                 saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
                 res.status(200).json({
