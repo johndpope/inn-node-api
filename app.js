@@ -43,7 +43,7 @@ app.use('/api/expandWorker',expandWorkerRoute);
 // Route to handle the resquest on the dashBoard
 app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
 
-
+app.use('/api/healthcheck', require('express-healthcheck')());
 
 app.use((req,res,next) => {
     const error  = new Error('Verify the END-POINT or the request Method (POST)');
