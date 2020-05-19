@@ -503,15 +503,7 @@ exports.send2APNS = (req,res,next) => {
 };
 
 let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
-    // console.log(p_id);
-    // console.log(p_subscriber_id);
-    // console.log(p_title);
-    // console.log(p_body);
-    // console.log(p_platform_id);
-    // console.log(p_status_id);
-    // console.log(p_message_status);
-    // console.log(getDateTime());
-     //console.log("log inside :"+p_control_message_id);
+
     let sent_at = getDateTime();
     if(p_status_id ==="1"){
         con.getConnection(function (err,connect) {
