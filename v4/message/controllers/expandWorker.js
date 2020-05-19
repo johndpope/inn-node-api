@@ -169,7 +169,7 @@ router.post('/v1',(req,res0,next)=>{
                                             'Content-Type': 'application/json'
                                         };
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('https://inn-api-new.herokuapp.com/api/message',
+                                        axios.post('http://ec2-54-146-3-28.compute-1.amazonaws.com:8080/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -195,7 +195,7 @@ router.post('/v1',(req,res0,next)=>{
 
     })
 
-})
+});
 
 router.post('/v3',(req,ress,next)=>{
    
@@ -208,7 +208,7 @@ router.post('/v3',(req,ress,next)=>{
         };
         console.log("started v3");
         const ff = await new Promise(async (res70,rej) => {
-            con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 10000",async (err0,res0)=>{
+            con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 4999",async (err0,res0)=>{
 
                 if(err0) throw err0;
                 var l =[];
@@ -337,7 +337,7 @@ router.post('/v3',(req,ress,next)=>{
                                                             }
                                                             
                                                              await updateStatus3TO4(control_message_id);
-                                                            // console.log("json = %j ",sendPushRequest);
+                                                             console.log("json = %j ",sendPushRequest);
                                                             console.log("sending message to dispatcher....");
                                                             var z = await axios.post('https://inn-api-new.herokuapp.com/api/message',
                                                             {sendPushRequest}

@@ -503,15 +503,7 @@ exports.send2APNS = (req,res,next) => {
 };
 
 let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
-    // console.log(p_id);
-    // console.log(p_subscriber_id);
-    // console.log(p_title);
-    // console.log(p_body);
-    // console.log(p_platform_id);
-    // console.log(p_status_id);
-    // console.log(p_message_status);
-    // console.log(getDateTime());
-     //console.log("log inside :"+p_control_message_id);
+
     let sent_at = getDateTime();
     if(p_status_id ==="1"){
         con.getConnection(function (err,connect) {
@@ -926,7 +918,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 });
                 apnProvider.shutdown();
             }
-            else if (!isEmpty(response.failed)  && (response.failed[0].status!=="200") )
+            else if (!isEmpty(response.failed[0].response)  && (response.failed[0].status!=="200") )
             {
                 p_status_id = '3';
                 let responseStatus = response.failed[0].status;
@@ -942,6 +934,49 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 });
                 apnProvider.shutdown();
             }
+            else  if (!isEmpty(response.failed[0].error))
+            {
+                p_status_id = '97';
+                let responseStatus = response.failed[0].error.jse_shortmsg;
+                p_status_details= response.failed[0].error.message;
+
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        responseStatus,
+                        status_details:p_status_details,
+                        status_id : p_status_id
+                    }
+                });
+                apnProvider.shutdown();
+            } else
+            {
+                p_status_id = '98';
+                let responseStatus = response.failed[0];
+                p_status_details= response.failed[0];
+
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        responseStatus,
+                        status_details:p_status_details,
+                        status_id : p_status_id
+                    }
+                });
+                apnProvider.shutdown();
+            }
+        }).catch(function (err) {
+            p_status_id = '99';
+            p_status_details= err;
+
+            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            res.status(200).json({
+                SendPushResponse:{
+                    status_details:p_status_details,
+                    status_id : p_status_id
+                }
+            });
+            apnProvider.shutdown();
         });
     }
 };
@@ -1058,11 +1093,11 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             });
             apnProvider.shutdown();
         }
-        else if (!isEmpty(response.failed)  && (response.failed[0].status!=="200") )
+        else if (!isEmpty(response.failed[0].response)  && (response.failed[0].status!=="200") )
             {
                 p_status_id = '3';
                 let responseStatus = response.failed[0].status;
-                p_status_details= response.failed[0].response.reason;
+                    p_status_details= response.failed[0].response.reason;
 
             saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
             res.status(200).json({
@@ -1074,6 +1109,34 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             });
                 apnProvider.shutdown();
         }
+        else  if (!isEmpty(response.failed[0].error))
+            {
+                p_status_id = '9';
+                let responseStatus = response.failed[0].error.jse_shortmsg;
+                p_status_details= response.failed[0].error.message;
+
+                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                res.status(200).json({
+                    SendPushResponse:{
+                        responseStatus,
+                        status_details:p_status_details,
+                        status_id : p_status_id
+                    }
+                });
+                apnProvider.shutdown();
+              }
+    }).catch(function (err) {
+        p_status_id = '99';
+        p_status_details= err;
+
+        saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+        res.status(200).json({
+            SendPushResponse:{
+                status_details:p_status_details,
+                status_id : p_status_id
+            }
+        });
+        apnProvider.shutdown();
     });
     }
 };

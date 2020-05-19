@@ -23,8 +23,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 
-app.use((req,res,next) => {
-    res.header('Access-Control-Allow-Origin','*');
+app.all((req,res,next) => {
+    res.header('Access-Control-Allow-Origin',"*");
     res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept');
     if(req.method === 'OPTIONS')
     {
@@ -41,7 +41,7 @@ app.use('/api/message', messagingRoutes);
 app.use('/api/expandWorker',expandWorkerRoute);
 
 // Route to handle the resquest on the dashBoard
-app.use('/api/analytics/dashboard',dashBoardRoutes);
+app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
 
 
 

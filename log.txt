@@ -1,0 +1,209 @@
+[TAILING] Tailing last 15 lines for [all] processes (change the value with --lines option)
+/home/ubuntu/.pm2/pm2.log last 15 lines:
+PM2        | 2020-05-18T17:19:31: PM2 log: App [app:1] exited with code [0] via signal [SIGINT]
+PM2        | 2020-05-18T17:19:31: PM2 log: App [app:1] starting in -fork mode-
+PM2        | 2020-05-18T17:19:31: PM2 log: App [app:1] online
+PM2        | 2020-05-18T17:19:35: PM2 log: App [app:1] exited with code [0] via signal [SIGINT]
+PM2        | 2020-05-18T17:19:35: PM2 log: App [app:1] starting in -fork mode-
+PM2        | 2020-05-18T17:19:35: PM2 log: App [app:1] online
+PM2        | 2020-05-18T17:19:38: PM2 log: App [app:1] exited with code [0] via signal [SIGINT]
+PM2        | 2020-05-18T17:19:38: PM2 log: App [app:1] starting in -fork mode-
+PM2        | 2020-05-18T17:19:38: PM2 log: App [app:1] online
+PM2        | 2020-05-18T17:19:41: PM2 log: App [app:1] exited with code [0] via signal [SIGINT]
+PM2        | 2020-05-18T17:19:41: PM2 log: App [app:1] starting in -fork mode-
+PM2        | 2020-05-18T17:19:41: PM2 log: App [app:1] online
+PM2        | 2020-05-18T17:19:44: PM2 log: App [app:1] exited with code [0] via signal [SIGINT]
+PM2        | 2020-05-18T17:19:44: PM2 log: App [app:1] starting in -fork mode-
+PM2        | 2020-05-18T17:19:44: PM2 log: App [app:1] online
+
+/home/ubuntu/.pm2/logs/app-out.log last 15 lines:
+/home/ubuntu/.pm2/logs/app-error.log last 15 lines:
+1|app      |     at Module.load (module.js:565:32)
+1|app      |     at tryModuleLoad (module.js:505:12)
+1|app      |     at Function.Module._load (module.js:497:3)
+1|app      |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v8.11.1/lib/node_modules/pm2/lib/ProcessContainerForkLegacy.js:28:21) code: 'MODULE_NOT_FOUND' }
+1|app      | { Error: Cannot find module 'cors'
+1|app      |     at Function.Module._resolveFilename (module.js:547:15)
+1|app      |     at Module.Hook._require.Module.require (/home/ubuntu/.nvm/versions/node/v8.11.1/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:61:29)
+1|app      |     at require (internal/module.js:11:18)
+1|app      |     at Object.<anonymous> (/home/ubuntu/inn-node-api/app.js:5:14)
+1|app      |     at Module._compile (module.js:652:30)
+1|app      |     at Object.Module._extensions..js (module.js:663:10)
+1|app      |     at Module.load (module.js:565:32)
+1|app      |     at tryModuleLoad (module.js:505:12)
+1|app      |     at Function.Module._load (module.js:497:3)
+1|app      |     at Object.<anonymous> (/home/ubuntu/.nvm/versions/node/v8.11.1/lib/node_modules/pm2/lib/ProcessContainerForkLegacy.js:28:21) code: 'MODULE_NOT_FOUND' }
+
+/home/ubuntu/.pm2/logs/server-error.log last 15 lines:
+0|server   |     at runMicrotasksCallback (internal/process/next_tick.js:121:5)
+0|server   |     at _combinedTickCallback (internal/process/next_tick.js:131:7)
+0|server   |     at process._tickCallback (internal/process/next_tick.js:180:9)
+0|server   | TypeError: Cannot read property 'reason' of undefined
+0|server   |     at apnProvider.send.then.response (/home/ubuntu/inn-node-api/v4/message/controllers/notifications.js:1065:63)
+0|server   |     at <anonymous>
+0|server   |     at runMicrotasksCallback (internal/process/next_tick.js:121:5)
+0|server   |     at _combinedTickCallback (internal/process/next_tick.js:131:7)
+0|server   |     at process._tickCallback (internal/process/next_tick.js:180:9)
+0|server   | TypeError: Cannot read property 'reason' of undefined
+0|server   |     at apnProvider.send.then.response (/home/ubuntu/inn-node-api/v4/message/controllers/notifications.js:1065:63)
+0|server   |     at <anonymous>
+0|server   |     at runMicrotasksCallback (internal/process/next_tick.js:121:5)
+0|server   |     at _combinedTickCallback (internal/process/next_tick.js:131:7)
+0|server   |     at process._tickCallback (internal/process/next_tick.js:180:9)
+
+/home/ubuntu/.pm2/logs/server-out.log last 15 lines:
+0|server   |      locals: {},
+0|server   |      _startAt: undefined,
+0|server   |      _startTime: undefined,
+0|server   |      writeHead: [Function: writeHead],
+0|server   |      __onFinished: { [Function: listener] queue: [Array] },
+0|server   |      [Symbol(outHeadersKey)]: 
+0|server   |       { 'x-powered-by': [Array],
+0|server   |         'access-control-allow-origin': [Array],
+0|server   |         'access-control-allow-headers': [Array] } },
+0|server   |   _startAt: [ 572341, 876627754 ],
+0|server   |   _startTime: 2020-05-18T17:00:51.274Z,
+0|server   |   _remoteAddress: '205.185.123.189',
+0|server   |   body: {} }
+0|server   | [0mGET /manager/html [33m401[0m 14.341 ms - 73[0m
+0|server   | [0mPOST /api/analytics/dashboard [0m-[0m - ms - -[0m
+
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+0|server | [0mPOST /api/expandWorker/v3 [0m-[0m - ms - -[0m
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
+PM2      | App [app:1] exited with code [0] via signal [SIGINT]
+PM2      | App [app:1] starting in -fork mode-
+PM2      | App [app:1] online
