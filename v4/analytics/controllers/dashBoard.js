@@ -8,63 +8,73 @@ router.post('/automation',async(req,res,next)=>{
     const automation_id = req.body.automation_id;
     const appId = await getAppId(appToken);
 
-    var autoData = [];
-    autoData = await getAutomationPerformance(automation_id);
+    con.getConnection(async function(err99,connection){
+        console.log("connected!!");
 
-    if(autoData.length == 0){
-        return res.status(200).json({
-            status:"0",
-            message:"Automation has no Data available"
+        var autoData = [];
+        autoData = await getAutomationPerformance(automation_id);
+
+        if(autoData.length == 0){
+            return res.status(200).json({
+                status:"0",
+                message:"Automation has no Data available"
+            })
+        }
+
+        var dias = [];
+        var sent = [];
+        var open = [];
+        var sumOpen = 0;
+        var sumSent = 0;
+
+        autoData.forEach(a => {
+            var dia = parseInt(a.d[0]+a.d[1]);
+            var mes = parseInt(a.d[3]+a.d[4]);
+            var se = a.sent;
+            var op = a.opened;
+            dias.push({d:dia,m:mes,s:se,o:op})
+        });
+        dias.sort(compareDay);
+        
+        dias.forEach(a=>{
+            sent.push(a.s);
+            open.push(a.o);
+            sumOpen += a.o;
+            sumSent += a.s;
         })
-    }
-
-    var dias = [];
-    var sent = [];
-    var open = [];
-    var sumOpen = 0;
-    var sumSent = 0;
-
-    autoData.forEach(a => {
-        var dia = parseInt(a.d[0]+a.d[1]);
-        var mes = parseInt(a.d[3]+a.d[4]);
-        var se = a.sent;
-        var op = a.opened;
-        dias.push({d:dia,m:mes,s:se,o:op})
-    });
-    dias.sort(compareDay);
-    
-    dias.forEach(a=>{
-        sent.push(a.s);
-        open.push(a.o);
-        sumOpen += a.o;
-        sumSent += a.s;
-    })
-
-    res.status(200).json({
-        status:"1",
-        label:dias,
-        sent:sent,
-        open:open,
-        sentSum:sumSent,
-        openSum:sumOpen
+        console.log("connection released!!");
+        connection.release();
+        res.status(200).json({
+            status:"1",
+            label:dias,
+            sent:sent,
+            open:open,
+            sentSum:sumSent,
+            openSum:sumOpen
+        })
     })
 })
 
 router.post('/audience',async(req,res,next)=>{
     const appToken = req.body.app_token;
     const audience_id = req.body.audience_id;
-    const appId = await getAppId(appToken);
+    
+    con.getConnection(async function(err99,connection){
+        console.log("connected!!");
+        const appId = await getAppId(appToken);
 
-    var data = await getAudienceSummary(audience_id,13);
-    if(data.length == 0){
+        var data = await getAudienceSummary(audience_id,13);
+        if(data.length == 0){
+            return res.status(200).json({
+                status:"0",
+                message:"This app has no audience available"
+            })
+        }
+        console.log("connection released!!")
+        connection.release();
         return res.status(200).json({
-            status:"0",
-            message:"This app has no audience available"
+            data
         })
-    }
-    // console.log(data)
-    return res.status(200).json({
-        data
     })
 })
 
@@ -91,82 +101,86 @@ router.post('/',async (req,res,next)=>{
         return res.status(200).json({
             Message: "Modules array empty, please check modules field."
         })
+        
+    con.getConnection(async function(err99,connection){
+        console.log("connected!!");
+        const id = await getAppId(app_token);
+        var updatedMods = []
+        updatedMods = await mods.map(async mod =>{
+            if(mod==1){
+                var notificationChart = await getNotificationChart(id);
+                return notificationChart;
+            } else if(mod == 2){
+                var engagementChart = await getEngagementChart(id);
+                return engagementChart;
+            } else if(mod == 3){
+                var retentionChart = await getRetentionChart(id);
+                return retentionChart;
+            } else if (mod == 4){
+                var activeBaseChart = await getActiveBase(id);
+                return activeBaseChart;
+            } else if(mod == 5){
+                var inngageTip = await getInngageTip();
+                return inngageTip;
 
-    const id = await getAppId(app_token);
-    var updatedMods = []
-    updatedMods = await mods.map(async mod =>{
-        if(mod==1){
-            var notificationChart = await getNotificationChart(id);
-            return notificationChart;
-        } else if(mod == 2){
-            var engagementChart = await getEngagementChart(id);
-            return engagementChart;
-        } else if(mod == 3){
-            var retentionChart = await getRetentionChart(id);
-            return retentionChart;
-        } else if (mod == 4){
-            var activeBaseChart = await getActiveBase(id);
-            return activeBaseChart;
-        } else if(mod == 5){
-            var inngageTip = await getInngageTip();
-            return inngageTip;
 
+            } else if (mod == 6){
 
-        } else if (mod == 6){
+                var aud = await getAudiences(id);
+                var audienceGrowthChart= []
+                if(aud.length == 0){
+                    res.status(200).json({
+                        audienceGrowthChart:{
+                            status:"0",
+                            message:"This app has no Audiences available"
+                        }
+                    })
+                }
+                
+                var data = await getAudienceSummary(aud[0].audience_id,13);
+                var x = {
+                    audiences: aud,
+                    firstAudienceData:data
+                }
+                return {audienceGrowthChart:x};
+                
 
-            var aud = await getAudiences(id);
-            var audienceGrowthChart= []
-            if(aud.length == 0){
-                res.status(200).json({
-                    audienceGrowthChart:{
-                        status:"0",
-                        message:"This app has no Audiences available"
-                    }
-                })
+            } else if(mod == 7){
+                
+                var auts = await getAutomations(id);
+                if(auts.length == 0){
+                    return res.status(200).json({
+                        AutomationPerformanceChart:{
+                            status:"0",
+                            message:"This app has no automations available."
+                        }
+                    })
+                }
+
+                var data = await getAutomationPerformance(auts[0].id);
+                console.log(auts[0].id)
+                var x = {
+                    automations:auts,
+                    firstAutoData:data
+                }
+                return {AutomationPerformanceChart:x};
             }
-            
-            var data = await getAudienceSummary(aud[0].audience_id,13);
-            var x = {
-                audiences: aud,
-                firstAudienceData:data
-            }
-            return {audienceGrowthChart:x};
-            
 
-        } else if(mod == 7){
-            
-            var auts = await getAutomations(id);
-            if(auts.length == 0){
-                return res.status(200).json({
-                    AutomationPerformanceChart:{
-                        status:"0",
-                        message:"This app has no automations available."
-                    }
-                })
-            }
+        })
 
-            var data = await getAutomationPerformance(auts[0].id);
-            console.log(auts[0].id)
-            var x = {
-                automations:auts,
-                firstAutoData:data
-            }
-            return {AutomationPerformanceChart:x};
+        const response = await Promise.all(updatedMods);
+
+        var modules_data = {}
+        for(i=0;i<response.length;i++){
+            var k = Object.keys(response[i]);
+            modules_data[k[0]] = response[i][k[0]];
         }
-
-    })
-
-    const response = await Promise.all(updatedMods);
-
-    var modules_data = {}
-    for(i=0;i<response.length;i++){
-        var k = Object.keys(response[i]);
-        modules_data[k[0]] = response[i][k[0]];
-    }
-    
-    res.status(200).json({
-        message:"Success",
-        modules_data
+        console.log("connection released!!");
+        connection.release();
+        res.status(200).json({
+            message:"Success",
+            modules_data
+        })
     })
 })
 
