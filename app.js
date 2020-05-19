@@ -23,16 +23,16 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 
-// app.use((req,res,next) => {
-//     res.header('Access-Control-Allow-Origin','*');
-//     res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept');
-//     if(req.method === 'OPTIONS')
-//     {
-//         res.header('Access-Control-Allow-Methods', 'POST,GET');
-//         return res.status(200).json({});
-//     }
-//     next();
-// });
+app.all((req,res,next) => {
+    res.header('Access-Control-Allow-Origin',"*");
+    res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept');
+    if(req.method === 'OPTIONS')
+    {
+        res.header('Access-Control-Allow-Methods', 'POST,GET');
+        return res.status(200).json({});
+    }
+    next();
+});
 
 // Route to handle the request on the messaging.
 app.use('/api/message', messagingRoutes);
