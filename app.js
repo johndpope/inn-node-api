@@ -6,7 +6,8 @@ const cors = require('cors');
 //const mongoose = require('mongoose');
 //const router = require("routes");
 const redis = require("redis");
-const client = redis.createClient();
+const client = redis.createClient(6379, 'redis')
+client.on('connect', () => console.log('Connected to Redis') )
 app.use(cors());
 
 const messagingRoutes = require('./v4/message/routes/notifications');
@@ -23,7 +24,7 @@ client.on("error", function(error) {
 });
 
 
-client.set("key", "value", 'EX', 3600, redis.print);
+client.set("fruta", "maca", 'EX', 3600, redis.print);
 
 
 
@@ -56,7 +57,9 @@ app.use('/api/healthcheck', require('express-healthcheck')());
 
 app.use('/api/cache',(req,res,next) => {
     //var s = client.exists('some_key_not_already_in_db', console.log);
-    var s = client.get("key", redis.print);
+    var s = client.get("fruta", redis.print);
+
+    client.exists("fruta", console.log)
 
     res.json({
         s
