@@ -80,19 +80,15 @@ router.post('/audience',async(req,res,next)=>{
 
 router.post('/',async (req,res,next)=>{
     var mods = req.body["modules[]"];
-    
     if(typeof(mods) === 'string') mods = [mods];
-
-
     if(mods == undefined) mods = req.body.modules;
-    
     const app_token = req.body.app_token;
-
+    
     if(app_token == undefined)
         return res.status(200).json({
             Message: "App_Token field is undefined, please check app_token field."
         })
-
+    
     if(mods == undefined)
         return res.status(200).json({
             Message: "Modules array undefined, please check modules field."
@@ -101,11 +97,15 @@ router.post('/',async (req,res,next)=>{
         return res.status(200).json({
             Message: "Modules array empty, please check modules field."
         })
-        
+    
+    console.log("app_token successfully received");
+    console.log("modules successfully received");
+    
     con.getConnection(async function(err99,connection){
         console.log("connected!!");
         const id = await getAppId(app_token);
-        var updatedMods = []
+        var updatedMods = [];
+        console.log("Starting to load modules..");
         updatedMods = await mods.map(async mod =>{
             if(mod==1){
                 var notificationChart = await getNotificationChart(id);
@@ -169,7 +169,8 @@ router.post('/',async (req,res,next)=>{
         })
 
         const response = await Promise.all(updatedMods);
-
+        console.log("Finished loading modules..");
+        console.log("Started structuring response");
         var modules_data = {}
         for(i=0;i<response.length;i++){
             var k = Object.keys(response[i]);
@@ -177,6 +178,7 @@ router.post('/',async (req,res,next)=>{
         }
         console.log("connection released!!");
         connection.release();
+        console.log("Finished structuring response")
         res.status(200).json({
             message:"Success",
             modules_data
@@ -875,6 +877,7 @@ async function getAppId(app_token){
             res(row);
         });
     });
+    console.log("app_id successfully selected from database");
     return id[0].id;
 }
 

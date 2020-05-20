@@ -19,26 +19,28 @@ router.post('/v1',(req,res0,next)=>{
         const control_message_id = req.body.control_message_id;
         const notification_id = req.body.notification_id;
         const subscriber_id = req.body.subscriber_id;
-
+        console.log("successfully recived data from JSON");
         let app_config,not_data,user_data,user_customfields;
 
         con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
             if(err) throw err;
             app_config = res[0];
             user_data = res[0];
+            console.log("app_config and user_data successfully selected from database ");
 
             con.query(`SELECT title, body ,url_push, img_push, url_type, status
             FROM control_message
             WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                 if(err2) throw err2;
                 not_data = res2[0];
-                
+                console.log("not_data successfully selected from database");
+
                 con.query(`SELECT  acf.custom_field_name, scf.value 
                 FROM subscriber_customfield scf JOIN app_customfield acf ON acf.custom_field_id = scf.app_custom_field_id 
                 WHERE subscriber_id = ${subscriber_id};`,(err4,res4)=>{
                     if(err) throw err;
                     user_customfields = res4;
-                    
+                    console.log("custom_fields successfully selected from database");
                     var custom_fields = {};
                     Object.keys(res4).forEach(function(key){
                         var row = res4[key];
@@ -57,6 +59,8 @@ router.post('/v1',(req,res0,next)=>{
                                 ORDER BY created_in ASC;`, (err5,res5)=>{
                                     if(err5) throw err5;
                                     var events = {};
+                                    console.log("Events successfully selected from database");
+
                                     Object.keys(res5).forEach(function(key){
                                         var row2 = res5[key];
                                         var eve_name =`{{` + row2.event_dado_name +`}}` 
@@ -71,45 +75,13 @@ router.post('/v1',(req,res0,next)=>{
                                         OR title LIKE '%|*%*|%'
                                         OR title LIKE '%{{%}}%');`,  async (err6,res6)=>{
                                         if(err6) throw err6;
-
+                                        console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
 
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
                                         per_flag = JSON.stringify(per_flag);
-                                        var sendPushRequest2 = {
-                                                            control_message: {
-                                                                                            control_message_id: control_message_id,
-                                                                                            title :not_data.title,
-                                                                                            body :not_data.body,
-                                                                                            message: not_data.body,
-                                                                                            url: not_data.url_push != null ? not_data.url_push : "",
-                                                                                            image_url: not_data.img_url != null ? not_data.img_url : "",
-                                                                                            url_type: not_data.url_type != null ? not_data.url_type : "",
-                                                                                            notid: notification_id,
-                                                                                            personalised_flag: per_flag
-                                                },
-                                                            channel: {
-                                                                                            provider_id: "",
-                                                                                            end_point: ""
-                                                },
-                                                            app: {
-                                                                                            app_id: app_id,
-                                                                                            apple_token_url: app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file : "", 
-                                                                                            apple_token_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass : "",
-                                                                                            apple_key: "", // nao lembro oque seria isso
-                                                                                            fcm_key: app_config.google_api_key
-                                                },
-                                                            subscriber: {
-                                                                                            subscriber_id: subscriber_id,
-                                                                                            registration: user_data.registration,
-                                                                                            phone: ""
-                                                },
-                                                            custom_fields
-                                                ,
-                                                            events
-                                            };
 
                                             var sendPushRequest = {
 
@@ -162,9 +134,10 @@ router.post('/v1',(req,res0,next)=>{
 
                                                 events
                                             }
-                                            
-                                            await updateStatus3TO4(control_message_id);
-                                            console.log("json = %j",sendPushRequest);
+                                        console.log("preparing to update control_message_status from 3 to 4");
+                                        await updateStatus3TO4(control_message_id);
+                                        console.log("sendPushRequest JSON")
+                                        console.log("%j",sendPushRequest);
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
                                         };
@@ -173,7 +146,7 @@ router.post('/v1',(req,res0,next)=>{
                                             {sendPushRequest}
                                         )
                                         .then(response => {
-                                                    
+                                                    console.log("Push successfully sent to dispatcher.");
                                                     res0.status(200).json({
                                                         SendPushResponse:response.data
                                                     });
@@ -209,6 +182,7 @@ router.post('/v3',(req,ress,next)=>{
         console.log("started v3");
         const ff = await new Promise(async (res70,rej) => {
             con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 4999",async (err0,res0)=>{
+                console.log("successfully selected messages to send from message_log_insert");
 
                 if(err0) throw err0;
                 var l =[];
@@ -225,29 +199,35 @@ router.post('/v3',(req,ress,next)=>{
                     var rList = []
                     Object.keys(res0).forEach(async function(key,idx,array){
                         var row = res0[key];
-                        // const app_id= "161";
                         const app_id= row.app_id;
                         const control_message_id = row.control_message_id;
                         const notification_id = row.notification_id;
-                        // const subscriber_id = "9130114";
                         const subscriber_id = row.subscriber_id;
+                        console.log("successfully recived data from JSON");
+
                         let app_config,not_data,user_data,user_customfields;
                         const resps = await new Promise((res90,rej) => {
                             con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration from subscriber s join  app_config ac on s.app_id = ac.app_id where s.id = ${subscriber_id} and ac.app_id = ${app_id};`, (err,res)=>{
                                 if(err) throw err;
                                 app_config = res[0];
+                                console.log("app_config successfully selected from database ");
+
                                 con.query(`SELECT title, body ,url_push, img_push, url_type, status
                                 FROM control_message
                                 WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                                     if(err2) throw err2;
                                     not_data = res2[0];
                                     user_data = res[0];
+                                    console.log("not_data and user_data successfully selected from database ");
+
                                     con.query(`SELECT  acf.custom_field_name, scf.value 
                                     FROM subscriber_customfield scf JOIN app_customfield acf ON acf.custom_field_id = scf.app_custom_field_id 
                                     WHERE subscriber_id = ${subscriber_id};`,(err4,res4)=>{
                                         if(err) throw err;
                                         user_customfields = res4;
                                         var custom_fields = {};
+                                        console.log("custom_fields successfully selected from database");
+
                                         Object.keys(res4).forEach(function(key){
                                             var row = res4[key];
                                             var cf_name = "|*" + row.custom_field_name +"*|";
@@ -265,6 +245,8 @@ router.post('/v3',(req,ress,next)=>{
                                                     AND ae.is_active = 1;`,(err5,res5)=>{
                                                         if(err5) throw err5;
                                                         var events = {};
+                                                        console.log("events successfully selected from database");
+
                                                         Object.keys(res5).forEach(function(key){
                                                             var row2 = res5[key];
                                                             var eve_name =`{{` + row2.event_dado_name +`}}` 
@@ -278,6 +260,8 @@ router.post('/v3',(req,ress,next)=>{
                                                             OR title LIKE '%|*%*|%'
                                                             OR title LIKE '%{{%}}%');`, async (err6,res6)=>{
                                                             if(err6) throw err6;
+                                                            console.log("personalyzed_flag successfully setted");
+
                                                             var is_prod = await getIsProd(app_id);
 
                                                             var per_flag = 0;
@@ -335,17 +319,20 @@ router.post('/v3',(req,ress,next)=>{
                 
                                                                 events
                                                             }
-                                                            
-                                                             await updateStatus3TO4(control_message_id);
-                                                             console.log("json = %j ",sendPushRequest);
+                                                            console.log("preparing to update control_message_status from 3 to 4");
+                                                            await updateStatus3TO4(control_message_id);
+                                                            console.log("sendPushRequest JSON")
+                                                            console.log("%j ",sendPushRequest);
                                                             console.log("sending message to dispatcher....");
                                                             var z = await axios.post('https://inn-api-new.herokuapp.com/api/message',
                                                             {sendPushRequest}
                                                             )
                                                             .then(async response => {
+                                                                    console.log("Push successfully sent to Dispatcher");
                                                                     return  response.data;
                                                             })
                                                             .catch( er => {
+                                                                console.log("Error on sending to Dispatcher...");
                                                                 console.log(er.SendPushResponse);
                                                                 return  er.SendPushResponse;
                                                             });
