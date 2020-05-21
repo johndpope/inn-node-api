@@ -48,13 +48,6 @@ app.use('/api/expandWorker',expandWorkerRoute);
 // Route to handle the resquest on the dashBoard
 app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
 
-app.use('/api/analytics/dashboard/cache',cors(),(req,res,dashBoardRoutes) => {
-
-    //cors()
-    //dashBoardRoutes
-
-});
-
 app.use('/api/healthcheck', require('express-healthcheck')());
 
 app.use('/api/cache',(req,res,next) => {
