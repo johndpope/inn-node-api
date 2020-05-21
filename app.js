@@ -23,11 +23,6 @@ client.on("error", function(error) {
     console.error(error);
 });
 
-
-client.set("fruta", "maca", 'EX', 3600, redis.print);
-
-
-
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -53,14 +48,32 @@ app.use('/api/expandWorker',expandWorkerRoute);
 // Route to handle the resquest on the dashBoard
 app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
 
+app.use('/api/analytics/dashboard/cache',cors(),(req,res,dashBoardRoutes) => {
+
+    //cors()
+    //dashBoardRoutes
+
+});
+
 app.use('/api/healthcheck', require('express-healthcheck')());
 
 app.use('/api/cache',(req,res,next) => {
-    //var s = client.exists('some_key_not_already_in_db', console.log);
-    var s = client.get("fruta", redis.print);
+    
+    var s;
 
-    client.exists("fruta", console.log)
-
+    client.exists('data', function(err, reply) {
+        if (!err) {
+            if (reply === 1) {
+                client.get("data", redis.print);
+                console.log("Key exists");
+            } else {
+                client.set('data', 'Hello World', redis.print);
+                client.expire('data', 5);
+                console.log("Does't exists, creating key");
+            }
+        }
+    });
+       
     res.json({
         s
     });
