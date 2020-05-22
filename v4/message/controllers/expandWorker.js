@@ -142,7 +142,7 @@ router.post('/v1',(req,res0,next)=>{
                                             'Content-Type': 'application/json'
                                         };
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('https://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
+                                        axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -320,7 +320,7 @@ router.post('/v3',(req,ress,next)=>{
                                                     console.log("sendPushRequest JSON")
                                                     console.log(sendPushRequest);
                                                     console.log("sending message to dispatcher....");
-                                                    axios.post('https://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
+                                                    axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
                                                     {sendPushRequest}
                                                     )
                                                     .then(async response => {
