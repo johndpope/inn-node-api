@@ -135,7 +135,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 events
                                             }
                                         console.log("preparing to update control_message_status from 3 to 4");
-                                        await updateStatus3TO4(control_message_id);
+                                        updateStatus3TO4(control_message_id);
                                         console.log("sendPushRequest JSON")
                                         console.log("%j",sendPushRequest);
                                         axios.defaults.headers = {
