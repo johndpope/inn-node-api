@@ -135,7 +135,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 events
                                             }
                                         console.log("preparing to update control_message_status from 3 to 4");
-                                        updateStatus3TO4(control_message_id);
+                                        var st = await updateStatus3TO4(control_message_id);
                                         console.log("sendPushRequest JSON")
                                         console.log("%j",sendPushRequest);
                                         axios.defaults.headers = {
@@ -183,7 +183,7 @@ router.post('/v3',(req,ress,next)=>{
         con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 4999",async (err0,res0)=>{
             if(err0) throw err0;
             console.log("successfully selected messages to send from message_log_insert");
-
+            var ids_updated = []
             var l =[];
             Object.keys(res0).forEach(async function(key){
                 l.push(res0[key].notification_id);
@@ -315,8 +315,11 @@ router.post('/v3',(req,ress,next)=>{
                                                         events
                                                     }
                                                     
-                                                    console.log("preparing to update control_message_status from 3 to 4");
-                                                    await updateStatus3TO4(control_message_id);
+                                                    if(!ids_updated.includes(control_message_id)){
+                                                        console.log("preparing to update control_message_status from 3 to 4");
+                                                        var st = await updateStatus3TO4(control_message_id);
+                                                        ids_updated.push(control_message_id);
+                                                    }
                                                     console.log("sendPushRequest JSON")
                                                     console.log(sendPushRequest);
                                                     console.log("sending message to dispatcher....");
@@ -393,7 +396,8 @@ async function updateStatus3TO4(CM_id){
         })
     });
     console.log("control_message "+CM_id+" updated");
-    var r = Promise.resolve(sql);
+    var r = await Promise.resolve(sql);
+    return r;
 }
 
 async function updateStatus0TO1All(list){
