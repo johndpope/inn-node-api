@@ -25,12 +25,13 @@ let getDateTime = () =>{
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
     var dateTime = date+' '+time;
     return dateTime
 };
-
-exports.send = (req,res,next) =>{
-
+let rep = 0 ;
+exports.send = async (req,res,next) =>{
+        console.log("Notification N° :"+rep);
    let platform_id= req.body.sendPushRequest.subscriber.platform_id;
     let firebase_ios = req.body.sendPushRequest.app.firebase_ios;
     let app_id = req.body.sendPushRequest.app.app_id;
@@ -46,27 +47,24 @@ exports.send = (req,res,next) =>{
                 break;
 
                     case  ((firebase_ios==="0") && (platform_id === "1")) :
-                        send2FCM(req,res);
+                         send2FCM(req,res);
                         break;
 
                             case ((firebase_ios==="1") && (platform_id === "1") && (app_id==="213")):
-                                send2iCarros(req,res);
+                                 send2iCarros(req,res);
                                 break;
 
                             case ((firebase_ios==="1") && (platform_id === "2")):
-                                send2FcmFirebaseiOS(req,res);
+                                  send2FcmFirebaseiOS(req,res);
                                 break;
 
                     case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="1")):
-                        send2ApnsProd(req,res,apns_topic);
+                          await send2ApnsProd(req,res,apns_topic);
                         break;
 
             case ((firebase_ios==="0") && (platform_id === "2") && (is_production==="0")):
-                send2ApnsDev(req,res,apns_topic);
+                await  send2ApnsDev(req,res,apns_topic);
                 break;
-
-
-
 
         }
 
@@ -449,114 +447,115 @@ exports.checkRequestFileds = (req,res,next) => {
     }
 };
 
-exports.send2APNS = (req,res,next) => {
-    let baseUrl = "https://app.inngage.com.br/resources/uploads/certificates_pem/";
-    let deviceToken = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
-    let key = __dirname+'/icarros_key.pem';
-    let cert = __dirname+'/icarros.pem';
+// exports.send2APNS = (req,res,next) => {
+//     let baseUrl = "https://app.inngage.com.br/resources/uploads/certificates_pem/";
+//     let deviceToken = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
+//     let key = __dirname+'/icarros_key.pem';
+//     let cert = __dirname+'/icarros.pem';
+//
+//     const options = {
+//         cert:cert,
+//         key:cert,
+//         passphrase:"icarros123",
+//         production: true,
+//     };
+//
+//     let apnProvider = new apn.Provider(options);
+//     let notification = new apn.Notification({
+//             alert: {
+//                 title: 'Eaiii ',
+//                 body: 'Click me Please :/ '
+//             },
+//             "mutable-content": 1,
+//             sound: "default",
+//             badge: 1,
+//             category: "br.com.inngage.Custom-Notification-Interface.notification",
+//             //topic: 'br.com.icarros',
+//
+//         otherCustomURL: "https://www.testufo.com/images/testufo-banner.png",
+//         url: "https://youtube.com/",
+//         provider: "inngage",
+//         id:"",
+//         inngage_data:""
+//     });
+//     notification.topic="br.com.icarros";
+//     apnProvider.send(notification, deviceToken).then(response => {
+//         if(!isEmpty(response.sent))
+//         {
+//             res.status(200).json({
+//                 SendPushResponse:response.sent,
+//                 request : notification
+//             });
+//             apnProvider.shutdown();
+//         }
+//         else {
+//                 res.status(500).json({
+//                 SendPushResponse:response
+//                 });
+//         }
+//             apnProvider.shutdown();
+//
+//     });
+//
+//
+// };
 
-    const options = {
-        cert:cert,
-        key:cert,
-        passphrase:"icarros123",
-        production: true,
-    };
-
-    let apnProvider = new apn.Provider(options);
-    let notification = new apn.Notification({
-            alert: {
-                title: 'Eaiii ',
-                body: 'Click me Please :/ '
-            },
-            "mutable-content": 1,
-            sound: "default",
-            badge: 1,
-            category: "br.com.inngage.Custom-Notification-Interface.notification",
-            //topic: 'br.com.icarros',
-
-        otherCustomURL: "https://www.testufo.com/images/testufo-banner.png",
-        url: "https://youtube.com/",
-        provider: "inngage",
-        id:"",
-        inngage_data:""
-    });
-    notification.topic="br.com.icarros";
-    apnProvider.send(notification, deviceToken).then(response => {
-        if(!isEmpty(response.sent))
-        {
-            res.status(200).json({
-                SendPushResponse:response.sent,
-                request : notification
-            });
-            apnProvider.shutdown();
-        }
-        else {
-                res.status(500).json({
-                SendPushResponse:response
-                });
-        }
-            apnProvider.shutdown();
-
-    });
-
-
-};
-
-let saveResponse2DB = (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
-
-    let sent_at = getDateTime();
-    if(p_status_id ==="1"){
-        con.getConnection(function (err,connect) {
-            //if(err) throw err ;$
-            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
-                //console.log(res0);
-                if (err0) throw err0;
-                console.log('rows inserted: ',  result.affectedRows);
-            });
-            console.log("connected !!!!");
-        });
-    }
-    else if(p_status_id ==="3" && p_message_status ==="NotRegistered"){
-        con.getConnection(function (err,connect) {
-            //if(err) throw err ;$
-            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
-                //console.log(res0);
-                if (err0) throw err0;
-                console.log('rows inserted: ',  result.affectedRows);
-            });
-            con.query(`UPDATE subscriber SET cloud_status = 1,uninstall_date = "${sent_at}" WHERE id = ${p_subscriber_id};`,(err0,result)=>{
-                //console.log(res0);
-                if (err0) throw err0;
-                console.log('rows updated: ',  result.affectedRows);
-            });
-
-        });
-    }
-    else if(p_status_id ==="3" && p_message_status ==="MismatchSenderId")
-            {
-                con.getConnection(function (err,connect) {
-                    //if(err) throw err ;$
-                    con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
-                        //console.log(res0);
-                        if (err0) throw err0;
-                        console.log('rows inserted: ',  result.affectedRows);
-                    });
-                });
-            }
-    else
-        {
-        con.getConnection(function (err,connect) {
-            //if(err) throw err ;$
-            con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}",${p_control_message_id});`,(err0,result)=>{
-                //console.log(res0);
-                if (err0) throw err0;
-                console.log('rows inserted: ',  result.affectedRows);
-            });
-        });
-    }
-
-
-};
+// let saveResponse2DB = async (p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) =>{
+//
+//     let sent_at = getDateTime();
+//     if(p_status_id ==="1"){
+//         con.getConnection(function (err,connect) {
+//             //if(err) throw err ;$
+//             console.log("Entered the save Response !!!!");
+//             con.query("INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES ",(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id),(err0,result)=>{
+//                 //console.log(res0);
+//                 if (err0) throw err0;
+//                 console.log('rows inserted: ',  result.affectedRows);
+//             });
+//
+//         });
+//     }
+//     else if(p_status_id ==="3" && p_message_status ==="NotRegistered"){
+//         con.getConnection(function (err,connect) {
+//             //if(err) throw err ;$
+//             con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+//                 //console.log(res0);
+//                 if (err0) throw err0;
+//                 console.log('rows inserted: ',  result.affectedRows);
+//             });
+//             con.query(`UPDATE subscriber SET cloud_status = 1,uninstall_date = "${sent_at}" WHERE id = ${p_subscriber_id};`,(err0,result)=>{
+//                 //console.log(res0);
+//                 if (err0) throw err0;
+//                 console.log('rows updated: ',  result.affectedRows);
+//             });
+//
+//         });
+//     }
+//     else if(p_status_id ==="3" && p_message_status ==="MismatchSenderId")
+//             {
+//                 con.getConnection(function (err,connect) {
+//                     //if(err) throw err ;$
+//                     con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}", ${p_control_message_id});`,(err0,result)=>{
+//                         //console.log(res0);
+//                         if (err0) throw err0;
+//                         console.log('rows inserted: ',  result.affectedRows);
+//                     });
+//                 });
+//             }
+//     else
+//         {
+//         con.getConnection(function (err,connect) {
+//             //if(err) throw err ;$
+//             con.query(`INSERT INTO message_responses_v4 (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, sent_at, control_message_id) VALUES (${p_id}, ${p_subscriber_id}, "${p_title}", "${p_body}",${p_platform_id}, ${p_status_id}, "${p_message_status}", "${sent_at}",${p_control_message_id});`,(err0,result)=>{
+//                 //console.log(res0);
+//                 if (err0) throw err0;
+//                 console.log('rows inserted: ',  result.affectedRows);
+//             });
+//         });
+//     }
+//
+//
+// };
 
 let send2FCM  =(req,res) => {
     let newBody ;
@@ -623,13 +622,14 @@ let send2FCM  =(req,res) => {
     axios.post('https://fcm.googleapis.com/fcm/send',
         message
     )
-        .then(function (response) {
+        .then( async function (response) {
 
             if(response.data.success===1)
             {    p_status_id = response.data.success;
                 p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-                //saveResponse2DB(status_id,message_status);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         //success : response.data,
@@ -641,7 +641,9 @@ let send2FCM  =(req,res) => {
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted '+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
 
@@ -652,9 +654,11 @@ let send2FCM  =(req,res) => {
 
             } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
             {
-                p_status_id = '9';
+                p_status_id = '99';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         status_details:response.data.results[0]["error"],
@@ -663,13 +667,15 @@ let send2FCM  =(req,res) => {
                 });
             }
         })
-        .catch(function (err) {
+        .catch( async function (err) {
             p_status_id = '99';
 
             if(err.message === "Request failed with status code 401")
             {
                 p_status_details="Request failed with status code 401 , Verify the FCM API key.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         Error:err.message,
@@ -681,7 +687,8 @@ let send2FCM  =(req,res) => {
             } else
             {
                 p_status_details=err.stack;
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
                 res.status(200).json({
                     SendPushRespnse:{
                         Error:err.message,
@@ -694,7 +701,7 @@ let send2FCM  =(req,res) => {
         });
 
 };
-let send2FcmFirebaseiOS =(req,res) => {
+let send2FcmFirebaseiOS = (req,res) => {
     let newBody ;
     let newTitle ;
     let p_id  = req.body.sendPushRequest.control_message.notid;
@@ -748,40 +755,43 @@ let send2FcmFirebaseiOS =(req,res) => {
     axios.post('https://fcm.googleapis.com/fcm/send',
         message
     )
-        .then(function (response) {
-
+        .then( async function (response) {
             if(response.data.success===1)
             {    p_status_id = response.data.success;
-                p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ) com sucesso.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-                //saveResponse2DB(status_id,message_status);
+                    p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ) com sucesso.";
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
-                        //success : response.data,
-                        //failure : response.data.failure,
-                        status_details:p_status_details
+                        status_details:p_status_details,
+                        sql
                     }
-
 
                 });
 
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
 
                         status_details:response.data.results[0]["error"],
-                        status_id : p_status_id
+                        status_id : p_status_id,
+                        sql
                     }
                 });
 
             } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
             {
-                p_status_id = '9';
+                p_status_id = '99';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         status_details:response.data.results[0]["error"],
@@ -790,13 +800,15 @@ let send2FcmFirebaseiOS =(req,res) => {
                 });
             }
         })
-        .catch(function (err) {
+        .catch(async function (err) {
             p_status_id = '99';
 
             if(err.message === "Request failed with status code 401")
             {
                 p_status_details="Request failed with status code 401 , Verify the FCM API key.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         Error:err.message,
@@ -808,7 +820,9 @@ let send2FcmFirebaseiOS =(req,res) => {
             } else
             {
                 p_status_details=err.stack;
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushRespnse:{
                         Error:err.message,
@@ -818,12 +832,6 @@ let send2FcmFirebaseiOS =(req,res) => {
                     }
                 });
             }
-            //console.log("log before saving :" + p_control_message_id);
-
-
-            //console.log(err.data);
-
-
         });
 };
 let send2ApnsDev  = async (req, res, apns_topic) => {
@@ -855,13 +863,13 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
     let deviceTokens = "330b5f77dbd575f9a5786465cde530c03c8ea402421e99ed8b20017604daac6c";
     let deviceToken = req.body.sendPushRequest.subscriber.registration;
 
-
-
-    if (isEmpty(apple_sandbox_cert_file) || isEmpty(apple_sandbox_cert_pass) || isEmpty(deviceToken))
+    if ((isEmpty(apple_sandbox_cert_file)) || (isEmpty(apple_sandbox_cert_pass)) || (isEmpty(apns_topic)))
     {
-        p_status_details= "Certification (file or password ) or device token is missing , Verify and Try Again";
+        p_status_details= "Certification (file or password or apns_topic)  is missing , Verify and Try Again";
+        console.log("entering  empty");
+        const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+        console.log('Row Inserted'+sql.affectedRows);
 
-        saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,"99",p_status_details,p_control_message_id);
         res.status(200).json({
             SendPushResponse:{
                 status_details:p_status_details,
@@ -869,7 +877,9 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
             }
         });
     }
-    else {
+    else if (!isEmpty(apple_sandbox_cert_file) && !isEmpty(apple_sandbox_cert_pass) && !(isEmpty(apns_topic))) {
+        console.log("entering not empty");
+
         const certificateRequest = await new Promise((result, rej) => {
             http.get(certPath, (res) => {
                 res.setEncoding('utf8');
@@ -882,34 +892,39 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
         const options = {
             cert: certificate,
             key: certificate,
-            passphrase: apple_sandbox_cert_pass,
+            passphrase: apple_prod_cert_pass,
             production: true,
         };
 
         let apnProvider = new apn.Provider(options);
-        let notification = new apn.Notification({
-            alert: {
-                title: newTitle,
-                body: newBody
-            },
-            "mutable-content": 1,
-            sound: "default",
-            badge: 1,
-            category: "br.com.inngage.Custom-Notification-Interface.notification",
-
-
-            otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
-            url: req.body.sendPushRequest.control_message.url,
-            provider: "inngage",
-            id:req.body.sendPushRequest.control_message.notid ,
-            inngage_data: ""
-        });
+        let notification = new apn.Notification();
+        notification.rawPayload = {
+            aps: {
+                alert: {
+                    title: newTitle,
+                    body: newBody
+                },
+                "mutable-content":true,
+                sound: "default",
+                badge: 1,
+                category: "br.com.inngage.Custom-Notification-Interface.notification",
+                otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
+                url: req.body.sendPushRequest.control_message.url,
+                provider: "inngage",
+                id:req.body.sendPushRequest.control_message.notid ,
+                inngage_data: ""
+            }
+        };
         notification.topic = apns_topic;
-        apnProvider.send(notification, deviceToken).then(response => {
+        notification.image=req.body.sendPushRequest.control_message.image_url;
+        notification.urlArgs=req.body.sendPushRequest.control_message.url;
+        apnProvider.send(notification, deviceToken).then(  async response => {
             if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
                 p_status_id = "1";
                 p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         status_id : p_status_id,
@@ -924,7 +939,9 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 let responseStatus = response.failed[0].status;
                 p_status_details= response.failed[0].response.reason;
 
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         responseStatus,
@@ -936,11 +953,13 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
             }
             else  if (!isEmpty(response.failed[0].error))
             {
-                p_status_id = '97';
+                p_status_id = '99';
                 let responseStatus = response.failed[0].error.jse_shortmsg;
                 p_status_details= response.failed[0].error.message;
 
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         responseStatus,
@@ -949,13 +968,14 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                     }
                 });
                 apnProvider.shutdown();
-            } else
-            {
-                p_status_id = '98';
-                let responseStatus = response.failed[0];
-                p_status_details= response.failed[0];
+            } else {
+                p_status_id = '99';
+                let responseStatus = response;
+                p_status_details= response;
 
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         responseStatus,
@@ -965,11 +985,13 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 });
                 apnProvider.shutdown();
             }
-        }).catch(function (err) {
+        }).catch( async function (err) {
             p_status_id = '99';
             p_status_details= err;
 
-            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+            console.log('Row Inserted'+sql.affectedRows);
+
             res.status(200).json({
                 SendPushResponse:{
                     status_details:p_status_details,
@@ -1014,8 +1036,9 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     {
         p_status_details= "Certification (file or password or apns_topic)  is missing , Verify and Try Again";
         console.log("entering  empty");
-        console.log(apns_topic);
-        saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,"99",p_status_details,p_control_message_id);
+        const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+        console.log('Row Inserted'+sql.affectedRows);
+
         res.status(200).json({
             SendPushResponse:{
                 status_details:p_status_details,
@@ -1025,7 +1048,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     }
     else if (!isEmpty(apple_prod_cert_file) && !isEmpty(apple_prod_cert_pass) && !(isEmpty(apns_topic))) {
         console.log("entering not empty");
-        console.log(apns_topic);
+
     const certificateRequest = await new Promise((result, rej) => {
         http.get(certPath, (res) => {
             res.setEncoding('utf8');
@@ -1044,22 +1067,6 @@ let send2ApnsProd = async (req,res,apns_topic) => {
 
     let apnProvider = new apn.Provider(options);
     let notification = new apn.Notification();
-    //     {
-    //     alert: {
-    //         title: newTitle,
-    //         body: newBody
-    //     },
-    //     "mutable-content":true,
-    //     sound: "default",
-    //     badge: 1,
-    //     category: "br.com.inngage.Custom-Notification-Interface.notification",
-    //     otherCustomURL:req.body.sendPushRequest.control_message.image_url ,
-    //     url: req.body.sendPushRequest.control_message.url,
-    //     provider: "inngage",
-    //     Notid:req.body.sendPushRequest.control_message.notid ,
-    //     inngage_data: ""
-    //
-    // });
          notification.rawPayload = {
             aps: {
                 alert: {
@@ -1080,11 +1087,13 @@ let send2ApnsProd = async (req,res,apns_topic) => {
     notification.topic = apns_topic;
     notification.image=req.body.sendPushRequest.control_message.image_url;
     notification.urlArgs=req.body.sendPushRequest.control_message.url;
-    apnProvider.send(notification, deviceToken).then(response => {
+    apnProvider.send(notification, deviceToken).then(  async response => {
         if (!isEmpty(response.sent) && (response.sent[0].device === deviceToken) ) {
             p_status_id = "1";
             p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
-            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+            const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+            console.log('Row Inserted'+sql.affectedRows);
+
             res.status(200).json({
                 SendPushResponse:{
                     status_id : p_status_id,
@@ -1099,7 +1108,9 @@ let send2ApnsProd = async (req,res,apns_topic) => {
                 let responseStatus = response.failed[0].status;
                     p_status_details= response.failed[0].response.reason;
 
-            saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
             res.status(200).json({
                 SendPushResponse:{
                     responseStatus,
@@ -1111,11 +1122,13 @@ let send2ApnsProd = async (req,res,apns_topic) => {
         }
         else  if (!isEmpty(response.failed[0].error))
             {
-                p_status_id = '9';
+                p_status_id = '99';
                 let responseStatus = response.failed[0].error.jse_shortmsg;
                 p_status_details= response.failed[0].error.message;
 
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         responseStatus,
@@ -1124,12 +1137,30 @@ let send2ApnsProd = async (req,res,apns_topic) => {
                     }
                 });
                 apnProvider.shutdown();
-              }
-    }).catch(function (err) {
+              } else {
+            p_status_id = '99';
+            let responseStatus = response;
+            p_status_details= response;
+
+            const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+            console.log('Row Inserted'+sql.affectedRows);
+
+            res.status(200).json({
+                SendPushResponse:{
+                    responseStatus,
+                    status_details:p_status_details,
+                    status_id : p_status_id
+                }
+            });
+            apnProvider.shutdown();
+        }
+    }).catch( async function (err) {
         p_status_id = '99';
         p_status_details= err;
 
-        saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+        const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+        console.log('Row Inserted'+sql.affectedRows);
+
         res.status(200).json({
             SendPushResponse:{
                 status_details:p_status_details,
@@ -1190,17 +1221,15 @@ let send2iCarros =(req,res) => {
     axios.post('https://fcm.googleapis.com/fcm/send',
         message
     )
-        .then(function (response) {
+        .then( async function (response) {
 
             if(response.data.success===1)
             {    p_status_id = response.data.success;
                 p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ( Custom iCarros) ) com sucesso.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
-                //saveResponse2DB(status_id,message_status);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
                 res.status(200).json({
                     SendPushResponse:{
-                        //success : response.data,
-                        //failure : response.data.failure,
                         status_details:p_status_details
                     }
 
@@ -1210,7 +1239,8 @@ let send2iCarros =(req,res) => {
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
                 res.status(200).json({
                     SendPushResponse:{
 
@@ -1223,7 +1253,8 @@ let send2iCarros =(req,res) => {
             {
                 p_status_id = '9';
                 p_status_details=response.data.results[0]["error"];
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
                 res.status(200).json({
                     SendPushResponse:{
                         status_details:response.data.results[0]["error"],
@@ -1232,13 +1263,15 @@ let send2iCarros =(req,res) => {
                 });
             }
         })
-        .catch(function (err) {
+        .catch( async function (err) {
             p_status_id = '99';
 
             if(err.message === "Request failed with status code 401")
             {
                 p_status_details="Request failed with status code 401 , Verify the FCM API key.";
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+
                 res.status(200).json({
                     SendPushResponse:{
                         Error:err.message,
@@ -1250,7 +1283,8 @@ let send2iCarros =(req,res) => {
             } else
             {
                 p_status_details=err.stack;
-                saveResponse2DB(p_id,p_subscriber_id,newTitle,newBody,p_platform_id,p_status_id,p_status_details,p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
                 res.status(200).json({
                     SendPushRespnse:{
                         Error:err.message,
@@ -1261,4 +1295,16 @@ let send2iCarros =(req,res) => {
                 });
             }
         });
+};
+
+function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id){
+    let sent_at = getDateTime();
+    return new Promise((resolve,reject)=>{
+        con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,sent_at,p_control_message_id],(error,response)=>{
+            if(error) reject(error);
+            resolve(response);
+        }
+        );
+        rep++;
+    });
 };
