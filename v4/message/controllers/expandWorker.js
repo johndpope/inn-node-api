@@ -175,11 +175,11 @@ router.post('/v3',(req,ress,next)=>{
     con.getConnection(function(err99,connection){
         if(err99) throw err99;
         console.log("connected!");
-
+        var isActive = 1;
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
-        console.log("started v3")
+        console.log("started v3");
         con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0",async (err0,res0)=>{
             if(err0) throw err0;
             console.log("successfully selected messages to send from message_log_insert");
@@ -189,9 +189,10 @@ router.post('/v3',(req,ress,next)=>{
                 l.push(res0[key].notification_id);
             });
             if(l.length == 0){
+                isActive = 0;
                 return ress.status(200).json({
                     SendPushResponse: "There are no messages available to be sent"
-                })
+                });
             }
 
             await updateStatus0TO1All(l);
@@ -345,11 +346,13 @@ router.post('/v3',(req,ress,next)=>{
         console.log("ending connection");
         connection.release();
         console.log("finished v3");
-    })
 
-    ress.status(200).json({
-        SendPushResponse:"Messages sent successfullly",
-    });
+        if(isActive == 1){
+            return ress.status(200).json({
+                SendPushResponse:"Messages sent successfullly",
+            });
+        }
+    })
 })
 
 
