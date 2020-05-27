@@ -180,7 +180,7 @@ router.post('/v3',(req,ress,next)=>{
             'Content-Type': 'application/json'
         };
         console.log("started v3");
-        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0",async (err0,res0)=>{
+        con.query("SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli JOIN control_message cm ON mli.control_message_id = cm.id_control_message WHERE cm.status = 3 OR cm.status = 4 AND  mli.message_status_id = 0 LIMIT 15000",async (err0,res0)=>{
             if(err0) throw err0;
             console.log("successfully selected messages to send from message_log_insert");
             var ids_updated = []
@@ -405,7 +405,7 @@ async function updateStatus3TO4(CM_id){
 
 async function updateStatus0TO1All(list){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 1 where message_status_id = 0 AND id IN (${list})`,(err,row)=>{
+        con.query('CALL update_mli_status_to_1 (?,@ret_code)',[list],(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
