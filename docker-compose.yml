@@ -22,7 +22,7 @@ services:
       - NODE_ENV=development
       - PORT=8080
     command:
-      sh -c 'npm i && node server.js'
+      sh -c 'npm i && node --max-old-space-size=3072 server.js'
 networks:
   redis-net:
     driver: bridge
