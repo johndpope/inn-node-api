@@ -175,7 +175,6 @@ router.post('/v3',(req,ress,next)=>{
     con.getConnection(function(err99,connection){
         if(err99) throw err99;
         console.log("connected!");
-        var isActive = 1;
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
@@ -186,16 +185,11 @@ router.post('/v3',(req,ress,next)=>{
             var ids_updated = []
             var l =[];
             Object.keys(res0).forEach(async function(key){
+                await updateStatus0TO1(res0[key].notification_id);
                 l.push(res0[key].notification_id);
             });
-            if(l.length == 0){
-                isActive = 0;
-                return ress.status(200).json({
-                    SendPushResponse: "There are no messages available to be sent"
-                });
-            }
 
-            await updateStatus0TO1All(l);
+
                 Object.keys(res0).forEach(function(key){
                     var row = res0[key];
                     const app_id= row.app_id;
@@ -347,11 +341,11 @@ router.post('/v3',(req,ress,next)=>{
         connection.release();
         console.log("finished v3");
 
-        if(isActive == 1){
-            return ress.status(200).json({
-                SendPushResponse:"Messages sent successfullly",
-            });
-        }
+
+        return ress.status(200).json({
+            SendPushResponse:"Messages sent successfullly",
+        });
+
     })
 })
 
@@ -370,7 +364,7 @@ async function getIsProd(app_id){
 
 async function updateStatus0TO1(not_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 1 where message_status_id = 0 AND id = ${not_id}`,(err,row)=>{
+        con.query('CALL update_mli_status_to_1 (?)',not_id,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
