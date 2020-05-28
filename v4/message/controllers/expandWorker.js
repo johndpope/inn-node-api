@@ -410,7 +410,7 @@ async function updateStatus0TO1All(list){
 
 async function updateStatus1TO9All(list){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id IN (${list})`,(err,row)=>{
+        con.query("UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id IN (?)", list,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
