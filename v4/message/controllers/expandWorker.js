@@ -405,7 +405,7 @@ async function updateStatus3TO4(CM_id){
 
 async function updateStatus0TO1All(list){
     const sql = await new Promise((res,rej)=>{
-        con.query('CALL update_mli_status_to_1 (?,@ret_code)',[list],(err,row)=>{
+        con.query('CALL update_mli_status_to_1 (?)',[list],(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
