@@ -184,12 +184,9 @@ router.post('/v3',(req,ress,next)=>{
             console.log("successfully selected messages to send from message_log_insert");
             var ids_updated = []
             var l =[];
-            const mli_update_list = await new Promise((res,rej)=>{
-                Object.keys(res0).forEach(async function(key){
-                    await updateStatus0TO1(res0[key].notification_id);
-                    l.push(res0[key].notification_id);
-                });
-                res(1);
+            Object.keys(res0).forEach(async function(key){
+                await updateStatus0TO1(res0[key].notification_id);
+                l.push(res0[key].notification_id);
             });
 
 
@@ -338,7 +335,6 @@ router.post('/v3',(req,ress,next)=>{
                         });
                     })
                 });
-            var mli_update_list_f = await Promise.resolve(mli_update_list);
             await updateStatus1TO9All(l);
         })
         console.log("ending connection");
