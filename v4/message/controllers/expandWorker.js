@@ -335,7 +335,10 @@ router.post('/v3',(req,ress,next)=>{
                         });
                     })
                 });
-            await updateStatus1TO9All(l);
+            // await updateStatus1TO9All(l);
+            for(i=0;i<l.length;++i){
+                await updateStatus1TO9(l[i]);
+            }
         })
         console.log("ending connection");
         connection.release();
@@ -375,7 +378,7 @@ async function updateStatus0TO1(not_id){
 
 async function updateStatus1TO9(not_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id = ${not_id}`,(err,row)=>{
+        con.query(`CALL update_mli_status_1_to_9 (?)`,not_id,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
@@ -387,7 +390,7 @@ async function updateStatus1TO9(not_id){
 
 async function updateStatus3TO4(CM_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`UPDATE control_message set status = 4 where status = 3 AND id_control_message = ${CM_id}`,(err,row)=>{
+        con.query(`CALL update_cm_status_3_to_4 (?)`,CM_id,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
@@ -397,16 +400,6 @@ async function updateStatus3TO4(CM_id){
     return r;
 }
 
-async function updateStatus0TO1All(list){
-    const sql = await new Promise((res,rej)=>{
-        con.query('CALL update_mli_status_to_1 (?)',list,(err,row)=>{
-            if(err) throw err;
-            res(JSON.parse(JSON.stringify(row)));
-        })
-    });
-    console.log("UPDATED STATUS TO 1 OF "+list);
-    var r = Promise.resolve(sql);
-}
 
 async function updateStatus1TO9All(list){
     const sql = await new Promise((res,rej)=>{
