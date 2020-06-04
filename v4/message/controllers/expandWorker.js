@@ -185,7 +185,7 @@ router.post('/v3',(req,ress,next)=>{
             var ids_updated = []
             var l =[];
             Object.keys(res0).forEach(async function(key){
-                await updateStatus0TO1(res0[key].notification_id);
+                await updateStatus0TO9(res0[key].notification_id);
                 l.push(res0[key].notification_id);
             });
 
@@ -335,7 +335,7 @@ router.post('/v3',(req,ress,next)=>{
                         });
                     })
                 });
-            await updateStatus1TO9All(l);
+            // await updateStatus1TO9All(l);
             // for(i=0;i<l.length;++i){
             //     await updateStatus1TO9(l[i]);
             // }
@@ -364,7 +364,8 @@ router.post('/v33',async(req,res,next)=>{
         
         var l = [];
         v3messages.forEach(async message =>{
-            await updateStatus0TO1(message.notification_id);
+            // await updateStatus0TO1(message.notification_id);
+            await updateStatus0TO9(message.notification_id);
             l.push(message.notification_id);
         });
 
@@ -382,7 +383,7 @@ router.post('/v33',async(req,res,next)=>{
             var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
             var not_data = await selectNotificationData(control_message_id);
             var per_flag = await setPerFlag(control_message_id);
-            var is_prod = await getIsProd(app_id)
+            var is_prod = await getIsProd(app_id);
             if(per_flag == 1){
                 var custom_fields = await selectCustomFields(subscriber_id);
                 var events = await selectEvents(subscriber_id,app_id);
@@ -422,7 +423,6 @@ router.post('/v33',async(req,res,next)=>{
                 });
             }
         })
-        await updateStatus1TO9All(l);
         console.log("ending connection");
         connection.release();
     });
