@@ -142,7 +142,7 @@ router.post('/v1',(req,res0,next)=>{
                                             'Content-Type': 'application/json'
                                         };
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('http://localhost:8080/api/message',
+                                        axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -379,7 +379,7 @@ router.post('/v33',async(req,res,next)=>{
             const subscriber_id = message.subscriber_id;
             // const subscriber_id = "9130114";
             // console.log(app_id+" - "+control_message_id+" - "+notification_id+" - "+subscriber_id);
-
+            var cmUp = await updateStatus3TO4(control_message_id);
             var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
             var not_data = await selectNotificationData(control_message_id);
             var per_flag = await setPerFlag(control_message_id);
@@ -474,7 +474,8 @@ async function updateStatus0TO9(not_id){
         })
     });
     console.log("message_log_insert "+not_id+" updated from 0 to 9");
-    var r = Promise.resolve(sql);
+    var r = await Promise.resolve(sql);
+    return r;
 }
 
 
@@ -607,7 +608,7 @@ async function selectFromMLI(){
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE cm.status = 3 OR cm.status = 4 AND 
-                    mli.message_status_id = 0 LIMIT 4999`,(err,row)=>{
+                    mli.message_status_id = 0 LIMIT 1000`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
