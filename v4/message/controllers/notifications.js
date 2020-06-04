@@ -268,10 +268,7 @@ exports.checkEvents = (req,res,next) => {
     var TitleObj = req.body.sendPushRequest.events;
     for (var Titlekey in TitleObj) {
         if (TitleObj.hasOwnProperty(Titlekey)) {
-            if(!isEmpty(TitleObj[Titlekey]))
-            {
                 newEventTitle = newEventTitle.replace(Titlekey, TitleObj[Titlekey]);
-            }
         }
     }
 
