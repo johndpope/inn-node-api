@@ -29,7 +29,7 @@ let getDateTime = () =>{
     var dateTime = date+' '+time;
     return dateTime
 };
-let rep = 0 ;
+
 exports.send = async (req,res,next) =>{
         console.log("Notification N° :"+rep);
    let platform_id= req.body.sendPushRequest.subscriber.platform_id;
@@ -628,12 +628,11 @@ let send2FCM  =(req,res) => {
             {    p_status_id = response.data.success;
                 p_status_details="Mensagem entregue ao provedor FCM com sucesso.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
-                        //success : response.data,
-                        //failure : response.data.failure,
-                        status_details:p_status_details
+                        status_details:p_status_details,
+                        NotID:p_id
                     }
                 });
 
@@ -641,10 +640,10 @@ let send2FCM  =(req,res) => {
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
-
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -655,9 +654,10 @@ let send2FCM  =(req,res) => {
                 p_status_id = '99';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -666,10 +666,11 @@ let send2FCM  =(req,res) => {
                 p_status_id = '99';
                 p_status_details=response;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 console.log('Error Response (FCM) : '+response);
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response,
                         status_id : p_status_id
                     }
@@ -683,9 +684,10 @@ let send2FCM  =(req,res) => {
             {
                 p_status_details="Request failed with status code 401 , Verify the FCM API key.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         Error:err.message,
                         Reason:'Verify the FCM API key.',
                         Key:req.body.sendPushRequest.app.fcm.google_api_key,
@@ -696,9 +698,10 @@ let send2FCM  =(req,res) => {
             {
                 p_status_details=err.stack;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushRespnse:{
+                        NotID:p_id,
                         Error:err.message,
                         Details:err.stack,
                         Reason:p_status_details,
@@ -768,11 +771,11 @@ let send2FcmFirebaseiOS = (req,res) => {
             {    p_status_id = response.data.success;
                     p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ) com sucesso.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
                         status_details:p_status_details,
-                        sql
+                        NotID:p_id,
                     }
 
                 });
@@ -781,13 +784,12 @@ let send2FcmFirebaseiOS = (req,res) => {
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
-
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
-                        status_id : p_status_id,
-                        sql
+                        status_id : p_status_id
                     }
                 });
 
@@ -796,9 +798,10 @@ let send2FcmFirebaseiOS = (req,res) => {
                 p_status_id = '99';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -808,10 +811,11 @@ let send2FcmFirebaseiOS = (req,res) => {
                 p_status_id = '99';
                 p_status_details=response;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 console.log('Error Response (FirebaseiOS) : '+response.data.results[0]["error"]);
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -828,6 +832,7 @@ let send2FcmFirebaseiOS = (req,res) => {
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         Error:err.message,
                         Reason:'Verify the FCM API key.',
                         Key:req.body.sendPushRequest.app.fcm.google_api_key,
@@ -838,9 +843,10 @@ let send2FcmFirebaseiOS = (req,res) => {
             {
                 p_status_details=err.stack;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
-                    SendPushRespnse:{
+                    SendPushResponse:{
+                        NotID:p_id,
                         Error:err.message,
                         Details:err.stack,
                         Reason:p_status_details,
@@ -888,6 +894,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
 
         res.status(200).json({
             SendPushResponse:{
+                NotID:p_id,
                 status_details:p_status_details,
                 status_id : "99"
             }
@@ -943,6 +950,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
 
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_id : p_status_id,
                         status_details:p_status_details
                     }
@@ -960,6 +968,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
 
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         responseStatus,
                         status_details:p_status_details,
                         status_id : p_status_id
@@ -977,6 +986,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                 console.log('Row Inserted'+sql.affectedRows);
 
                 res.status(200).json({
+                    NotID:p_id,
                     SendPushResponse:{
                         responseStatus,
                         status_details:p_status_details,
@@ -994,6 +1004,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
 
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         responseStatus,
                         status_details:p_status_details,
                         status_id : p_status_id
@@ -1010,6 +1021,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
 
             res.status(200).json({
                 SendPushResponse:{
+                    NotID:p_id,
                     status_details:p_status_details,
                     status_id : p_status_id
                 }
@@ -1053,9 +1065,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
         p_status_details= "Certification (file or password or apns_topic)  is missing , Verify and Try Again";
         console.log("entering  empty");
         const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-        console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+        console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
         res.status(200).json({
             SendPushResponse:{
+                NotID:p_id,
                 status_details:p_status_details,
                 status_id : "99"
             }
@@ -1106,10 +1119,11 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             p_status_id = "1";
             p_status_details="Mensagem entregue ao provedor APNS com sucesso.";
             const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-            console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+            console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
 
             res.status(200).json({
                 SendPushResponse:{
+                    NotID:p_id,
                     status_id : p_status_id,
                     status_details:p_status_details
                 }
@@ -1123,9 +1137,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
                     p_status_details= response.failed[0].response.reason;
 
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
             res.status(200).json({
                 SendPushResponse:{
+                    NotID:p_id,
                     responseStatus,
                     status_details:p_status_details,
                     status_id : p_status_id
@@ -1140,9 +1155,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
                 p_status_details= response.failed[0].error.message;
 
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         responseStatus,
                         status_details:p_status_details,
                         status_id : p_status_id
@@ -1155,9 +1171,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
             p_status_details= response;
 
             const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-            console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+            console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
             res.status(200).json({
                 SendPushResponse:{
+                    NotID:p_id,
                     responseStatus,
                     status_details:p_status_details,
                     status_id : p_status_id
@@ -1170,9 +1187,10 @@ let send2ApnsProd = async (req,res,apns_topic) => {
         p_status_details= err;
 
         const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-        console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+        console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
         res.status(200).json({
             SendPushResponse:{
+                NotID:p_id,
                 status_details:p_status_details,
                 status_id : p_status_id
             }
@@ -1237,9 +1255,10 @@ let send2iCarros =(req,res) => {
             {    p_status_id = response.data.success;
                 p_status_details="Mensagem entregue ao provedor FCM ( Firebase IOS ( Custom iCarros) ) com sucesso.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:p_status_details
                     }
 
@@ -1250,10 +1269,10 @@ let send2iCarros =(req,res) => {
                 p_status_id = '3';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
-
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -1264,9 +1283,10 @@ let send2iCarros =(req,res) => {
                 p_status_id = '9';
                 p_status_details=response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response.data.results[0]["error"],
                         status_id : p_status_id
                     }
@@ -1275,10 +1295,11 @@ let send2iCarros =(req,res) => {
                 p_status_id = '99';
                 p_status_details=response;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 console.log('Error Response (iCarros) : '+response);
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         status_details:response,
                         status_id : p_status_id
                     }
@@ -1292,9 +1313,10 @@ let send2iCarros =(req,res) => {
             {
                 p_status_details="Request failed with status code 401 , Verify the FCM API key.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
+                        NotID:p_id,
                         Error:err.message,
                         Reason:'Verify the FCM API key.',
                         Key:req.body.sendPushRequest.app.fcm.google_api_key,
@@ -1305,9 +1327,10 @@ let send2iCarros =(req,res) => {
             {
                 p_status_details=err.stack;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+']'+'NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushRespnse:{
+                        NotID:p_id,
                         Error:err.message,
                         Details:err.stack,
                         Reason:p_status_details,
@@ -1326,6 +1349,6 @@ function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_statu
             resolve(response);
         }
         );
-        rep++;
+
     });
 };
