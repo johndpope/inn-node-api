@@ -137,12 +137,12 @@ router.post('/v1',(req,res0,next)=>{
                                         console.log("preparing to update control_message_status from 3 to 4");
                                         var st = await updateStatus3TO4(control_message_id);
                                         console.log("sendPushRequest JSON")
-                                        console.log("%j",sendPushRequest);
+                                        console.log("%j",{sendPushRequest});
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
                                         };
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
+                                        axios.post('http://localhost:8080/api/message',
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -353,6 +353,85 @@ router.post('/v3',(req,ress,next)=>{
 })
 
 
+router.post('/v33',async(req,res,next)=>{
+    con.getConnection(async function(err,connection){
+        if(err) throw err;
+        console.log("connected!!");
+        axios.defaults.headers = {
+            'Content-Type': 'application/json'
+        };
+        var v3messages = await selectFromMLI();
+        
+        var l = [];
+        v3messages.forEach(async message =>{
+            await updateStatus0TO1(message.notification_id);
+            l.push(message.notification_id);
+        });
+
+        v3messages.forEach(async message=>{
+            const app_id= message.app_id;
+            // const app_id= "161";
+            const control_message_id = message.control_message_id;
+            // const control_message_id = "2720914";
+            const notification_id = message.notification_id;
+            // const notification_id = "258671049";
+            const subscriber_id = message.subscriber_id;
+            // const subscriber_id = "9130114";
+            // console.log(app_id+" - "+control_message_id+" - "+notification_id+" - "+subscriber_id);
+
+            var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
+            var not_data = await selectNotificationData(control_message_id);
+            var per_flag = await setPerFlag(control_message_id);
+            var is_prod = await getIsProd(app_id)
+            if(per_flag == 1){
+                var custom_fields = await selectCustomFields(subscriber_id);
+                var events = await selectEvents(subscriber_id,app_id);
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
+                
+                console.log("sendPushRequest JSON")
+                console.log(sendPushRequest);
+                console.log("sending message to dispatcher....");
+
+                axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending to Dispatcher...");
+                    console.log(er.SendPushResponse);
+                });
+
+            }else{
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+
+                console.log("sendPushRequest JSON");
+                console.log("%j",sendPushRequest);
+                console.log("sending message to dispatcher....");
+
+                axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/message',
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending to Dispatcher...");
+                    console.log(er);
+                });
+            }
+        })
+        await updateStatus1TO9All(l);
+        console.log("ending connection");
+        connection.release();
+    });
+
+    return res.status(200).json({
+        message:"Success"
+    })
+})
+
 async function getIsProd(app_id){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT is_production FROM app WHERE id = ${app_id};`,(err,row)=>{
@@ -422,4 +501,175 @@ async function updateStatus1TO9All(list){
     console.log("UPDATED STATUS TO 9 OF "+list);
     var r = Promise.resolve(sql);
 }
+
+async function setPerFlag(control_message_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`Select * from control_message where id_control_message = ${control_message_id} 
+                    AND (body LIKE '%|*%*|%'
+                    OR body LIKE '%{{%}}%'
+                    OR title LIKE '%|*%*|%'
+                    OR title LIKE '%{{%}}%');`,(err,row)=>{
+        
+                        if(err) throw err;
+                        res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    var r = await Promise.all(sql);
+    console.log("personalized flag for CM_id "+control_message_id+" successfully selected.");
+    if(r.length>0){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+async function selectCustomFields(subscriber_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT  acf.custom_field_name, scf.value 
+                    FROM subscriber_customfield scf JOIN app_customfield acf ON acf.custom_field_id = scf.app_custom_field_id 
+                    WHERE subscriber_id = ${subscriber_id};`,(err,row)=>{
+                        if(err) throw err;
+
+                        var custom_fields = {};
+                        Object.keys(row).forEach(function(key){
+                            var row2 = row[key];
+                            var cf_name = "|*" + row2.custom_field_name +"*|";
+                            var cf_value = row2.value
+                            custom_fields[cf_name] = cf_value;
+                        });
+                        res(custom_fields);
+        })
+    });
+    
+    var r = await Promise.resolve(sql);
+    console.log("Subscriber "+subscriber_id+" custom fields successfully selected");
+    return r;
+}
+
+async function selectEvents(subscriber_id,app_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT aed.event_dado_name,valor FROM app_events_data aed, app_events ae, subscriber_event se , subscriber_event_data sed 
+                    WHERE ae.app_id = ${app_id}
+                    AND ae.id = aed.event_id
+                    AND se.subscriber_id = ${subscriber_id}
+                    AND sed.id_event_data = aed.id
+                    AND sed.Id_subscriber_event = se.id
+                    AND ae.is_active = 1
+                    ORDER BY created_in ASC;`,(err,row)=>{
+                        if(err) throw err;
+
+                        var events = {};
+                        Object.keys(row).forEach(function(key){
+                            var row2 = row[key];
+                            var eve_name =`{{` + row2.event_dado_name +`}}` 
+                            var eve_value = row2.valor;
+                            events[eve_name] = eve_value
+                        });
+                        res(events);
+        })
+    });
+    
+    var r = await Promise.resolve(sql);
+    console.log("Subscriber "+subscriber_id+" events for app "+app_id+" successfully selected from database");
+    return r;
+}
+
+async function selectNotificationData(control_message_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT title, body ,url_push, img_push, url_type, status
+                    FROM control_message
+                    WHERE id_control_message = ${control_message_id}`,(err,row)=>{
+                        if(err) throw err;
+                        res(row);
+        })
+    });
+    var r = await Promise.all(sql);
+    console.log("Notification data successfully selected from database");
+    return r[0];
+}
+
+async function selectAppConfigAndUserData(subscriber_id,app_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT ac.class_name, ac.apns_topic,ac.sandbox_cert_pass,ac.sandbox_cert_name,ac.sandbox_cert_file,ac.production_cert_pass, ac.production_cert_file, ac.package_name, ac.production_cert_name, ac.firebase_ios, ac.google_api_key, s.platform_id, s.registration 
+                    from subscriber s join  app_config ac on s.app_id = ac.app_id 
+                    where s.id = ${subscriber_id} and ac.app_id = ${app_id};`,(err,row)=>{
+                        if(err) throw err;
+                        res(row);
+        })
+    });
+    var r = await Promise.all(sql);
+    console.log("App_config an User_data successfully selected from database");
+    return r[0];
+}
+
+async function selectFromMLI(){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
+                    JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
+                    WHERE cm.status = 3 OR cm.status = 4 AND 
+                    mli.message_status_id = 0 LIMIT 4999`,(err,row)=>{
+                        if(err) throw err;
+                        res(row);
+        })
+    });
+    var r = await Promise.all(sql);
+    console.log("Messages successfully selected from message log insert");
+    return r;
+}
+
+function buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,app_config,not_data,user_data,custom_fields,events,per_flag,is_prod){
+    var sendPushRequest = {
+
+        control_message: {
+            control_message_id: control_message_id,
+            title: not_data.title,
+            body:  not_data.body,
+            message: not_data.body,
+            url: not_data.url_push != null ? not_data.url_push:"",
+            image_url: not_data.image_url != null ? not_data.image_url:"",
+            url_type: not_data.url_type != null ? not_data.url_type:"" ,
+            notid: notification_id,
+            personalised_flag: JSON.stringify(per_flag)
+        },
+        channel: {
+            provider_id: "",
+            end_point: ""
+        },
+        app: {
+            app_id: app_id,
+            production: JSON.stringify(is_prod),
+            firebase_ios:app_config.firebase_ios != null ? JSON.stringify(app_config.firebase_ios) : "",
+            apns :{
+                prod:{
+                    apple_prod_cert_file: app_config.production_cert_file != null ? app_config.production_cert_file:"",
+                    apple_prod_cert_name: app_config.production_cert_name != null ? app_config.production_cert_name:"",
+                    apple_prod_cert_pass: app_config.production_cert_pass != null ? app_config.production_cert_pass:"",
+                },
+                sandbox:{
+                    apple_sandbox_cert_file:app_config.sandbox_cert_file != null ? app_config.sandbox_cert_file:"",
+                    apple_sandbox_cert_name:app_config.sandbox_cert_name != null ? app_config.sandbox_cert_name:"",
+                    apple_sandbox_cert_pass:app_config.sandbox_cert_pass != null ? app_config.sandbox_cert_pass:""
+                },
+                apns_topic:app_config.apns_topic != null ? app_config.apns_topic : "",
+            },
+            fcm:{
+                google_api_key: app_config.google_api_key != null ? app_config.google_api_key:"",
+                package_name:app_config.package_name != null ? app_config.package_name:"",
+                class_name:app_config.class_name != null ? app_config.class_name:"",
+            },
+            
+        },
+        subscriber: {
+            subscriber_id: subscriber_id,
+            registration: user_data.registration,
+            phone: "",
+            platform_id: JSON.stringify(user_data.platform_id)
+        },
+        custom_fields,
+
+        events
+    }
+    return sendPushRequest
+}
+
 module.exports = router;
