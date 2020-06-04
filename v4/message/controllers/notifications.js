@@ -50,7 +50,7 @@ exports.send = async (req,res,next) =>{
                          send2FCM(req,res);
                         break;
 
-                            case ((firebase_ios==="0") && (platform_id === "1") && (app_id==="213")):
+                            case ((platform_id === "1") && (app_id==="213")):
                                  send2iCarros(req,res);
                                 break;
 
