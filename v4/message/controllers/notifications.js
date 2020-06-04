@@ -42,7 +42,7 @@ exports.send = async (req,res,next) =>{
 
         switch (true)
         {
-            case ((firebase_ios==="1") && (platform_id === "1")) :
+            case ((firebase_ios==="1") && (platform_id === "1") && (app_id!=="213")) :
                 send2FcmFirebaseiOS(req,res);
                 break;
 
@@ -268,7 +268,10 @@ exports.checkEvents = (req,res,next) => {
     var TitleObj = req.body.sendPushRequest.events;
     for (var Titlekey in TitleObj) {
         if (TitleObj.hasOwnProperty(Titlekey)) {
-            newEventTitle = newEventTitle.replace(Titlekey, TitleObj[Titlekey]);
+            if(!isEmpty(TitleObj[Titlekey]))
+            {
+                newEventTitle = newEventTitle.replace(Titlekey, TitleObj[Titlekey]);
+            }
         }
     }
 
@@ -665,6 +668,19 @@ let send2FCM  =(req,res) => {
                         status_id : p_status_id
                     }
                 });
+            } else {
+                p_status_id = '99';
+                p_status_details=response;
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+                console.log('Error Response (FCM) : '+response);
+                console.error('Error Response (FCM): '+response,response);
+                res.status(200).json({
+                    SendPushResponse:{
+                        status_details:response,
+                        status_id : p_status_id
+                    }
+                });
             }
         })
         .catch( async function (err) {
@@ -795,6 +811,20 @@ let send2FcmFirebaseiOS = (req,res) => {
                 res.status(200).json({
                     SendPushResponse:{
                         status_details:response.data.results[0]["error"],
+                        status_id : p_status_id
+                    }
+                });
+            }
+            else {
+                p_status_id = '99';
+                p_status_details=response;
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+                console.log('Error Response (iCarros) : '+response);
+                console.error('Error Response (iCarros): '+response,response);
+                res.status(200).json({
+                    SendPushResponse:{
+                        status_details:response,
                         status_id : p_status_id
                     }
                 });
@@ -1261,6 +1291,19 @@ let send2iCarros =(req,res) => {
                         status_id : p_status_id
                     }
                 });
+            } else {
+                p_status_id = '99';
+                p_status_details=response;
+                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                console.log('Row Inserted'+sql.affectedRows);
+                console.log('Error Response (iCarros) : '+response);
+                console.error('Error Response (iCarros): '+response,response);
+                res.status(200).json({
+                    SendPushResponse:{
+                        status_details:response,
+                        status_id : p_status_id
+                    }
+            });
             }
         })
         .catch( async function (err) {
