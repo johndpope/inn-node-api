@@ -28,7 +28,7 @@ router.post('/v1',(req,res0,next)=>{
             user_data = res[0];
             console.log("app_config and user_data successfully selected from database ");
 
-            con.query(`SELECT title, body ,url_push, img_push, url_type, status
+            con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent
             FROM control_message
             WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                 if(err2) throw err2;
@@ -94,7 +94,8 @@ router.post('/v1',(req,res0,next)=>{
                                                     image_url: not_data.image_url != null ? not_data.image_url:"",
                                                     url_type: not_data.url_type != null ? not_data.url_type:"" ,
                                                     notid: notification_id,
-                                                    personalised_flag: per_flag
+                                                    personalised_flag: per_flag,
+                                                    silent:not_data.silent
                                                 },
                                                 channel: {
                                                     provider_id: "",
@@ -203,7 +204,7 @@ router.post('/v3',(req,ress,next)=>{
                         console.log("app_config successfully selected from database ");
 
                         app_config = res[0];
-                        con.query(`SELECT title, body ,url_push, img_push, url_type, status
+                        con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent
                         FROM control_message
                         WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                             if(err2) throw err2;
@@ -269,7 +270,8 @@ router.post('/v3',(req,ress,next)=>{
                                                             image_url: not_data.image_url != null ? not_data.image_url:"",
                                                             url_type: not_data.url_type != null ? not_data.url_type:"" ,
                                                             notid: notification_id,
-                                                            personalised_flag: per_flag
+                                                            personalised_flag: per_flag,
+                                                            silent:not_id.silent
                                                         },
                                                         channel: {
                                                             provider_id: "",
@@ -356,29 +358,25 @@ router.post('/v3',(req,ress,next)=>{
 router.post('/v33',async(req,res,next)=>{
     con.getConnection(async function(err,connection){
         if(err) throw err;
-        console.log("connected!!");
+        console.log("["+getDateTime()+"] --- Started V33 ---");
+        console.log("["+getDateTime()+"] --- Successfully connected to Data Base!!");
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
         var v3messages = await selectFromMLI();
+        console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
         
         var l = [];
         v3messages.forEach(async message =>{
-            // await updateStatus0TO1(message.notification_id);
             await updateStatus0TO9(message.notification_id);
             l.push(message.notification_id);
         });
 
         v3messages.forEach(async message=>{
             const app_id= message.app_id;
-            // const app_id= "161";
             const control_message_id = message.control_message_id;
-            // const control_message_id = "2720914";
             const notification_id = message.notification_id;
-            // const notification_id = "258671049";
             const subscriber_id = message.subscriber_id;
-            // const subscriber_id = "9130114";
-            // console.log(app_id+" - "+control_message_id+" - "+notification_id+" - "+subscriber_id);
             var cmUp = await updateStatus3TO4(control_message_id);
             var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
             var not_data = await selectNotificationData(control_message_id);
@@ -577,7 +575,7 @@ async function selectEvents(subscriber_id,app_id){
 
 async function selectNotificationData(control_message_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT title, body ,url_push, img_push, url_type, status
+        con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent
                     FROM control_message
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
@@ -630,7 +628,8 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
             image_url: not_data.image_url != null ? not_data.image_url:"",
             url_type: not_data.url_type != null ? not_data.url_type:"" ,
             notid: notification_id,
-            personalised_flag: JSON.stringify(per_flag)
+            personalised_flag: JSON.stringify(per_flag),
+            silent:not_data.silent
         },
         channel: {
             provider_id: "",
@@ -672,5 +671,14 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
     }
     return sendPushRequest
 }
+
+let getDateTime = () =>{
+    var today = new Date();
+    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+    var dateTime = date+' '+time;
+    return dateTime
+};
 
 module.exports = router;
