@@ -365,7 +365,7 @@ router.post('/v33',async(req,res,next)=>{
         };
         var v3messages = await selectFromMLI();
         console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
-        
+        var updated_ids = []
         var l = [];
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
@@ -377,7 +377,11 @@ router.post('/v33',async(req,res,next)=>{
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
             const subscriber_id = message.subscriber_id;
-            var cmUp = await updateStatus3TO4(control_message_id);
+            
+            if(!updated_ids.includes(control_message_id)){
+                var cmUp = await updateStatus3TO4(control_message_id);
+                updated_ids.push(control_message_id);
+            }
             var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
             var not_data = await selectNotificationData(control_message_id);
             var per_flag = await setPerFlag(control_message_id);
