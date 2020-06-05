@@ -1065,8 +1065,6 @@ let silentPush =(req,res) => {
     let p_status_id  = "";
     let p_status_details  = "";
     let p_control_message_id = req.body.sendPushRequest.control_message.control_message_id;
-    let newTitle = req.body.sendPushRequest.control_message.title;
-    let newBody = req.body.sendPushRequest.control_message.body;
 
     let request =   {
         to:req.body.sendPushRequest.subscriber.registration,
@@ -1086,7 +1084,7 @@ let silentPush =(req,res) => {
             if(response.data.success===1)
             {    p_status_id = response.data.success;
                 p_status_details="[Silent Push]: Mensagem entregue ao provedor FCM  com sucesso.";
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1100,7 +1098,7 @@ let silentPush =(req,res) => {
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details='[Silent Push]: '+response.data.results[0]["error"];
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1114,7 +1112,7 @@ let silentPush =(req,res) => {
             {
                 p_status_id = '9';
                 p_status_details='[Silent Push]: '+response.data.results[0]["error"];
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1126,7 +1124,7 @@ let silentPush =(req,res) => {
             } else {
                 p_status_id = '99';
                 p_status_details='[Silent Push]: '+response;
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 console.log('Error Response (silent Push) : '+response);
                 res.status(200).json({
@@ -1144,7 +1142,7 @@ let silentPush =(req,res) => {
             if(err.message === "Request failed with status code 401")
             {
                 p_status_details="[Silent Push]: Request failed with status code 401 , Verify the FCM API key.";
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1158,7 +1156,7 @@ let silentPush =(req,res) => {
             } else
             {
                 p_status_details='[Silent Push]: '+err.stack;
-                const  sql = await  saveResponses(p_id, p_subscriber_id, newTitle, newBody, p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushRespnse:{
