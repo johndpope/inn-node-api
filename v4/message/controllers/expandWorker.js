@@ -633,7 +633,7 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
             url_type: not_data.url_type != null ? not_data.url_type:"" ,
             notid: notification_id,
             personalised_flag: JSON.stringify(per_flag),
-            silent:not_data.silent
+            silent:JSON.stringify(not_data.silent)
         },
         channel: {
             provider_id: "",
