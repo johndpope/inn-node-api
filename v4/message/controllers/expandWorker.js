@@ -359,7 +359,7 @@ router.post('/v33',async(req,res,next)=>{
     con.getConnection(async function(err,connection){
         if(err) throw err;
         console.log("["+getDateTime()+"] --- Started V33 ---");
-        console.log("["+getDateTime()+"] --- Successfully connected to Data Base!!");
+        console.log("["+getDateTime()+"] --- Successfully connected to DataBase!!");
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
@@ -610,7 +610,7 @@ async function selectFromMLI(){
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE cm.status = 3 OR cm.status = 4 AND 
-                    mli.message_status_id = 0 LIMIT 1000`,(err,row)=>{
+                    mli.message_status_id = 0 LIMIT 4999`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
