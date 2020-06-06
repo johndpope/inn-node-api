@@ -367,17 +367,17 @@ router.post('/v33',async(req,res,next)=>{
         console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
         var updated_ids = []
         var l = [];
-        v3messages.forEach(async message =>{
+        for (const message of v3messages) {
             await updateStatus0TO9(message.notification_id);
             l.push(message.notification_id);
-        });
+        }
 
-        v3messages.forEach(async message=>{
+        for (const message of v3messages) {
             const app_id= message.app_id;
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
             const subscriber_id = message.subscriber_id;
-            
+
             if(!updated_ids.includes(control_message_id)){
                 var cmUp = await updateStatus3TO4(control_message_id);
                 updated_ids.push(control_message_id);
@@ -390,7 +390,7 @@ router.post('/v33',async(req,res,next)=>{
                 var custom_fields = await selectCustomFields(subscriber_id);
                 var events = await selectEvents(subscriber_id,app_id);
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
-                
+
                 console.log("sendPushRequest JSON")
                 console.log(sendPushRequest);
                 console.log("sending message to dispatcher....");
@@ -424,7 +424,7 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
-        })
+        }
         console.log("ending connection");
         connection.release();
     });
@@ -432,7 +432,7 @@ router.post('/v33',async(req,res,next)=>{
     return res.status(200).json({
         message:"Success"
     })
-})
+});
 
 async function getIsProd(app_id){
     const sql = await new Promise((res,rej)=>{
