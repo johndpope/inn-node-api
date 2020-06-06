@@ -367,12 +367,12 @@ router.post('/v33',async(req,res,next)=>{
         console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
         var updated_ids = []
         var l = [];
-        for (const message of v3messages) {
+        v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
             l.push(message.notification_id);
-        }
+        });
 
-        for (const message of v3messages) {
+        v3messages.forEach(async message=>{
             const app_id= message.app_id;
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
@@ -424,7 +424,7 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
-        }
+        });
         console.log("ending connection");
         connection.release();
     });
