@@ -44,7 +44,7 @@ exports.send = async (req,res,next) =>{
 
         switch (true)
         {
-            case ((silent==="1") && (platform_id === "1") ) :
+            case (silent==="1") :
             silentPush(req,res);
             break;
 
