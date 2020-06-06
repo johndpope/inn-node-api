@@ -395,7 +395,7 @@ router.post('/v33',async(req,res,next)=>{
                 console.log(sendPushRequest);
                 console.log("sending message to dispatcher....");
 
-                axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
+                axios.post('http://ec2-54-144-238-74.compute-1.amazonaws.com:8080/api/message/',
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -413,7 +413,7 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("%j",sendPushRequest);
                 console.log("sending message to dispatcher....");
 
-                axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message',
+                axios.post('http://ec2-54-144-238-74.compute-1.amazonaws.com:8080/api/message',
                 {sendPushRequest}
                 )
                 .then(async response => {
