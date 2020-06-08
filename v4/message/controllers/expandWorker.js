@@ -641,7 +641,7 @@ async function selectFromMLI(){
                     WHERE cm.status = 3 OR cm.status = 4 AND 
                     mli.message_status_id = 0 AND
                     cm.silent = 1
-                    LIMIT 999`,(err,row)=>{
+                    LIMIT 499`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
