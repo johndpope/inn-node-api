@@ -369,7 +369,8 @@ router.post('/v33',async(req,res,next)=>{
         };
         var v3messages = await selectFromMLI();
         console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
-        var updated_ids = []
+        var updated_ids = [];
+        var cms_data={};
         var l = [];
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
@@ -387,11 +388,28 @@ router.post('/v33',async(req,res,next)=>{
                 var cmUp = await updateStatus3TO4(control_message_id);
                 updated_ids.push(control_message_id);
             }
-            var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
-            var not_data = await selectNotificationData(control_message_id);
-            // var per_flag = await setPerFlag(control_message_id);
-            var per_flag = setPerFlagOptmized(not_data.title,not_data.body);
-            var is_prod = await getIsProd(app_id);
+            var appConfigAndUserData;
+            var not_data;
+            var per_flag;
+            var is_prod;
+
+            if(cms_data[control_message_id] == undefined || cms_data[control_message_id] == null){
+
+                appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
+                not_data = await selectNotificationData(control_message_id);
+                per_flag = setPerFlagOptmized(not_data.title,not_data.body);
+                is_prod = await getIsProd(app_id);
+                cms_data[control_message_id] = {appConfigAndUserData,
+                               not_data,
+                               per_flag,
+                               is_prod
+                              }
+            }else{
+                appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
+                not_data = cms_data[control_message_id].not_data;
+                per_flag = cms_data[control_message_id].per_flag;
+                is_prod = cms_data[control_message_id].is_prod;
+            }
             if(per_flag == 1){
                 var custom_fields = await selectCustomFields(subscriber_id);
                 var events = await selectEvents(subscriber_id,app_id);
