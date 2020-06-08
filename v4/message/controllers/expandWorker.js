@@ -417,8 +417,7 @@ router.post('/v33',async(req,res,next)=>{
 
                 console.log("sendPushRequest JSON")
                 console.log(sendPushRequest);
-                console.log("sending message to dispatcher....");
-
+                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
                 axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
                 {sendPushRequest}
                 )
