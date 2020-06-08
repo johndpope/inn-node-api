@@ -369,6 +369,7 @@ router.post('/v33',async(req,res,next)=>{
         var l = [];
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
+            await updateMLISentAt(message.notification_id);
             l.push(message.notification_id);
         });
 
@@ -494,15 +495,15 @@ async function updateStatus3TO4(CM_id){
 }
 
 
-async function updateStatus1TO9All(list){
+async function updateMLISentAt(notification_id){
     const sql = await new Promise((res,rej)=>{
-        con.query("UPDATE message_log_insert set message_status_id = 9 where message_status_id = 1 AND id IN ('?')", list,(err,row)=>{
+        con.query("UPDATE message_log_insert set created_in = NOW() where id = ?;",notification_id ,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
     });
-    console.log("UPDATED STATUS TO 9 OF "+list);
-    var r = Promise.resolve(sql);
+    console.log("UPDATED CREATED_IN DATE TO NOW OF "+notification_id);
+    var r = await Promise.resolve(sql);
 }
 
 async function setPerFlag(control_message_id){
