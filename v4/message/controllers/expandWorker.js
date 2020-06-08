@@ -77,7 +77,11 @@ router.post('/v1',(req,res0,next)=>{
                                         if(err6) throw err6;
                                         console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
-
+                                        var v2 = await setPerFlag2(not_data.title,"iCarros Entrega Fácil :truck: |* teste *|");
+                                        if(v2)
+                                            console.log("v2 deu true ");
+                                        else
+                                            console.log("v2 deu false")
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
@@ -385,7 +389,8 @@ router.post('/v33',async(req,res,next)=>{
             }
             var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
             var not_data = await selectNotificationData(control_message_id);
-            var per_flag = await setPerFlag(control_message_id);
+            // var per_flag = await setPerFlag(control_message_id);
+            var per_flag = setPerFlagOptmized(not_data.title,not_data.body);
             var is_prod = await getIsProd(app_id);
             if(per_flag == 1){
                 var custom_fields = await selectCustomFields(subscriber_id);
@@ -525,6 +530,12 @@ async function setPerFlag(control_message_id){
     }else{
         return 0;
     }
+}
+
+function setPerFlagOptmized(title,body){
+    var t = (title.includes("|*") || title.includes("*|") || title.includes("{{") || title.includes("}}"));
+    var b = (body.includes("|*") || body.includes("*|") || body.includes("{{") || body.includes("}}"));
+    return (t || b);
 }
 
 async function selectCustomFields(subscriber_id){
