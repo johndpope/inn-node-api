@@ -640,7 +640,9 @@ async function selectFromMLI(){
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE cm.status = 3 OR cm.status = 4 AND 
-                    mli.message_status_id = 0 LIMIT 999`,(err,row)=>{
+                    mli.message_status_id = 0 AND
+                    cm.silent = 1
+                    LIMIT 999`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
