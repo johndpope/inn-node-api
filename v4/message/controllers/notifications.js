@@ -35,45 +35,55 @@ exports.send = async (req,res,next) =>{
    let platform_id= req.body.sendPushRequest.subscriber.platform_id;
     let firebase_ios = req.body.sendPushRequest.app.firebase_ios;
     let app_id = req.body.sendPushRequest.app.app_id;
-
+    let p_id  = req.body.sendPushRequest.control_message.notid;
+    let subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+    let control_message_id = req.body.sendPushRequest.control_message.control_message_id;
     //if the app is in production
     let is_production =req.body.sendPushRequest.app.production;
     let apns_topic = req.body.sendPushRequest.app.apns.apns_topic;
+    // if the pushes are silent
      let silent = req.body.sendPushRequest.control_message.silent ;
-     if(isEmpty(silent)) silent="0" ;
 
-        switch (true)
-        {
-            case ((silent==="1") && (firebase_ios==="1") ) :
-            silentPush(req,res);
+     if(isEmpty(silent)) silent="0" ;
+try {
+
+
+    switch (true) {
+        case ((silent === "1") && (firebase_ios === "1")) :
+            silentPush(req, res);
             break;
 
-                case ((silent==="0") && (firebase_ios==="1") && (platform_id === "1") && (app_id!=="213")) :
-                    send2FcmFirebaseiOS(req,res);
-                    break;
+        case ((silent === "0") && (firebase_ios === "1") && (platform_id === "1") && (app_id !== "213")) :
+            send2FcmFirebaseiOS(req, res);
+            break;
 
-                        case  ((silent==="0") && (firebase_ios==="0") && (platform_id === "1") && (app_id!=="213")) :
-                            send2FCM(req,res);
-                            break;
+        case  ((silent === "0") && (firebase_ios === "0") && (platform_id === "1") && (app_id !== "213")) :
+            send2FCM(req, res);
+            break;
 
-                                case ((silent==="0") && (platform_id === "1") && (app_id==="213")):
-                                    send2iCarros(req,res);
-                                    break;
+        case ((silent === "0") && (platform_id === "1") && (app_id === "213")):
+            send2iCarros(req, res);
+            break;
 
-                                    case ((silent==="0") && (firebase_ios==="1") && (platform_id === "2")):
-                                        send2FcmFirebaseiOS(req,res);
-                                        break;
+        case ((silent === "0") && (firebase_ios === "1") && (platform_id === "2")):
+            send2FcmFirebaseiOS(req, res);
+            break;
 
-                                        case ((silent==="0") && (firebase_ios==="0") && (platform_id === "2") && (is_production==="1")):
-                                            await send2ApnsProd(req,res,apns_topic);
-                                            break;
+        case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "1")):
+            await send2ApnsProd(req, res, apns_topic);
+            break;
 
-                                            case ((silent==="0") && (firebase_ios==="0") && (platform_id === "2") && (is_production==="0")):
-                                                await  send2ApnsDev(req,res,apns_topic);
-                                                break;
+        case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "0")):
+            await send2ApnsDev(req, res, apns_topic);
+            break;
 
-        }
-
+    }
+}catch (e) {
+    await saveResponses(p_id, subscriber_id, "Catch EXCEPTION", "Catch EXCEPTION", platform_id, '-99', e, control_message_id);
+    res.status(500).json({
+        exception : e
+    });
+}
 };
 
 exports.checkCustomFields = (req,res,next) => {

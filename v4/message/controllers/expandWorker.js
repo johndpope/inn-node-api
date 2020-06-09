@@ -2,7 +2,14 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 var con = require('../connection/DBconnection');
-
+import {
+    P2cBalancer,
+} from 'load-balancers';
+const endpoints = [
+    'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
+];
+const balancer = new P2cBalancer(endpoints.length);
 router.post('/v1',(req,res0,next)=>{
 
     con.getConnection(function(err99,connection){
@@ -360,6 +367,7 @@ router.post('/v3',(req,ress,next)=>{
 
 
 router.post('/v33',async(req,res,next)=>{
+
     con.getConnection(async function(err,connection){
         if(err) throw err;
         console.log("["+getDateTime()+"] --- Started V33 ---");
@@ -418,7 +426,8 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON")
                 console.log(sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
+                const endpoint = endpoints[balancer.pick()];
+                axios.post(endpoint,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -435,8 +444,8 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON");
                 console.log("%j",sendPushRequest);
                 console.log("sending message to dispatcher....");
-
-                axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message',
+                const endpoint = endpoints[balancer.pick()];
+                axios.post(endpoint,
                 {sendPushRequest}
                 )
                 .then(async response => {
