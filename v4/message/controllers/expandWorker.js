@@ -2,9 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 var con = require('../connection/DBconnection');
-import {
-    P2cBalancer,
-} from 'load-balancers';
+
+const P2cBalancer = require('load-balancers');
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
     'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
