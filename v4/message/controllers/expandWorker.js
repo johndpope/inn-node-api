@@ -389,6 +389,7 @@ router.post('/v33',async(req,res,next)=>{
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
             const subscriber_id = message.subscriber_id;
+            console.log("["+getDateTime()+"]sending => "+notification_id);
 
             if(!updated_ids.includes(control_message_id)){
                 var cmUp = await updateStatus3TO4(control_message_id);
@@ -441,7 +442,7 @@ router.post('/v33',async(req,res,next)=>{
 
                 console.log("sendPushRequest JSON");
                 console.log("%j",sendPushRequest);
-                console.log("sending message to dispatcher....");
+                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
                 axios.post(endpoint,
                 {sendPushRequest}
