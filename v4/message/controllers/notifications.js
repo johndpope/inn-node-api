@@ -1093,23 +1093,23 @@ let silentPush =(req,res) => {
 
             if(response.data.success===1)
             {    p_status_id = response.data.success;
+                console.log('['+getDateTime()+'] Response Received ... Will go to saving now --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 p_status_details="[Silent Push]: Mensagem entregue ao provedor FCM  com sucesso.";
                 const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
                         NotID:p_id,
                         status_details:p_status_details
                     }
-
-
                 });
 
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
+                console.log('['+getDateTime()+'] Response Received ... Will go to saving now --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 p_status_details='[Silent Push]: '+response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
                         NotID:p_id,
@@ -1121,9 +1121,10 @@ let silentPush =(req,res) => {
             } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
             {
                 p_status_id = '9';
+                console.log('['+getDateTime()+'] Response Received ... Will go to saving now --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 p_status_details='[Silent Push]: '+response.data.results[0]["error"];
                 const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
+                console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
                         NotID:p_id,
@@ -1133,10 +1134,10 @@ let silentPush =(req,res) => {
                 });
             } else {
                 p_status_id = '99';
+                console.log('['+getDateTime()+'] Response Received ... Will go to saving now ---'+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 p_status_details='[Silent Push]: '+response;
                 const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                console.log('['+getDateTime()+'] Row Inserted --- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
-                console.log('Error Response (silent Push) : '+response);
+                console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
                         NotID:p_id,

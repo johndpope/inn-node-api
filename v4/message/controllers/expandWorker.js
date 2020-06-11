@@ -1,13 +1,10 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-var con = require('../connection/DBconnection');
+const con = require('../connection/DBconnection');
+const ip = require('ip');
 
 
-const endpoints = [
-    'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
-];
 router.post('/v1',(req,res0,next)=>{
 
     con.getConnection(function(err99,connection){
@@ -389,7 +386,6 @@ router.post('/v33',async(req,res,next)=>{
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
             const subscriber_id = message.subscriber_id;
-            console.log("["+getDateTime()+"]sending => "+notification_id);
 
             if(!updated_ids.includes(control_message_id)){
                 var cmUp = await updateStatus3TO4(control_message_id);
@@ -422,11 +418,11 @@ router.post('/v33',async(req,res,next)=>{
                 var events = await selectEvents(subscriber_id,app_id);
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
 
-                console.log("sendPushRequest JSON")
+                console.log("sendPushRequest JSON");
                 console.log(sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
+
+                axios.post("http://"+ip.address()+":8080"+"/api/message/" ,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -442,9 +438,8 @@ router.post('/v33',async(req,res,next)=>{
 
                 console.log("sendPushRequest JSON");
                 console.log("%j",sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
+                console.log("sending message to dispatcher...");
+                axios.post("http://"+ip.address()+":8080"+"/api/message/" ,
                 {sendPushRequest}
                 )
                 .then(async response => {
