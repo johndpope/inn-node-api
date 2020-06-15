@@ -16,6 +16,8 @@ const expandWorkerRoute = require('./v4/message/routes/expandWorker');
 
 const dashBoardRoutes = require('./v4/analytics/routes/dashBoard');
 
+const reportStatusRoutes = require('./v4/message/routes/reportStatus');
+
 //app.use('/', router);
 
 //app.use('/api', router);
@@ -47,6 +49,9 @@ app.use('/api/expandWorker',expandWorkerRoute);
 
 // Route to handle the resquest on the dashBoard
 app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
+
+// Route to handle the resquest on the ExpandWorker
+app.use('/api/reportstatus',reportStatusRoutes);
 
 app.use('/api/healthcheck', require('express-healthcheck')());
 
