@@ -82,11 +82,11 @@ router.post('/v1',(req,res0,next)=>{
                                         if(err6) throw err6;
                                         console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
-                                        var v2 = await setPerFlag2(not_data.title,"iCarros Entrega Fácil :truck: |* teste *|");
-                                        if(v2)
-                                            console.log("v2 deu true ");
-                                        else
-                                            console.log("v2 deu false")
+                                        // var v2 = await setPerFlagOptmized(not_data.title,"iCarros Entrega Fácil :truck: |* teste *|");
+                                        // if(v2)
+                                        //     console.log("v2 deu true ");
+                                        // else
+                                        //     console.log("v2 deu false")
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
@@ -144,15 +144,20 @@ router.post('/v1',(req,res0,next)=>{
 
                                                 events
                                             }
-                                        console.log("preparing to update control_message_status from 3 to 4");
-                                        var st = await updateStatus3TO4(control_message_id);
+                                        // console.log("preparing to update control_message_status from 3 to 4");
+                                        // var st = await updateStatus3TO4(control_message_id);
+                                        var channelsData = await teste(control_message_id,app_id);
+                                        // console.log("comecou cacar channels")
+                                        // console.log(channelsData);
+                                        // console.log(channelsData["Firebase"]);
                                         console.log("sendPushRequest JSON")
                                         console.log("%j",{sendPushRequest});
                                         axios.defaults.headers = {
                                             'Content-Type': 'application/json'
-                                        };
+                                        };  
                                         console.log("Sending to Dispatcher...");
-                                        axios.post('http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message',
+                                        const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                                        axios.post(endpoint,
                                             {sendPushRequest}
                                         )
                                         .then(response => {
@@ -167,7 +172,7 @@ router.post('/v1',(req,res0,next)=>{
                                                         teste:err.SendPushResponse,
                                                         error:err
                                                     });
-                                                });    
+                                                });
                                     });
                     });
                 });
@@ -399,6 +404,9 @@ router.post('/v33',async(req,res,next)=>{
             var not_data;
             var per_flag;
             var is_prod;
+            var channelsData;
+            var custom_fields;
+            var events;
 
             if(cms_data[control_message_id] == undefined || cms_data[control_message_id] == null){
 
@@ -406,55 +414,92 @@ router.post('/v33',async(req,res,next)=>{
                 not_data = await selectNotificationData(control_message_id);
                 per_flag = setPerFlagOptmized(not_data.title,not_data.body);
                 is_prod = await getIsProd(app_id);
+                channelsData = teste(control_message_id,app_id);
                 cms_data[control_message_id] = {appConfigAndUserData,
                                not_data,
                                per_flag,
-                               is_prod
+                               is_prod,
+                               channelsData
                               }
             }else{
                 appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
                 not_data = cms_data[control_message_id].not_data;
                 per_flag = cms_data[control_message_id].per_flag;
                 is_prod = cms_data[control_message_id].is_prod;
+                channelsData = cms_data[control_message_id].channelsData;
             }
-            if(per_flag == 1){
-                var custom_fields = await selectCustomFields(subscriber_id);
-                var events = await selectEvents(subscriber_id,app_id);
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
-
-                console.log("sendPushRequest JSON")
-                console.log(sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending to Dispatcher...");
-                    console.log(er.SendPushResponse);
-                });
-
-            }else{
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-
-                console.log("sendPushRequest JSON");
-                console.log("%j",sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
-                    console.log(er);
-                });
+            // CHECK IF ANY OF THE CUSTOM_BODY OR CUSTOM_TITLE FROM OTHER CHANNELS HAVE CUSTOM_DATA
+            for(i=0;i<channelsData.length;++i){
+                if(setPerFlagOptmized(channelsData[i].custom_title,channelsData[i].custom_body)){
+                    custom_fields = await selectCustomFields(subscriber_id);
+                    events = await selectEvents(subscriber_id,app_id);
+                    break;
+                }
             }
+
+            channelsData.forEach(channel =>{
+                if(channel.channel_id == 1){
+                    // PUSH NOTIFICATION
+                    if(per_flag == 1){
+                        let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
+        
+                        console.log("sendPushRequest JSON")
+                        console.log(sendPushRequest);
+                        console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                        const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                        axios.post(endpoint,
+                        {sendPushRequest}
+                        )
+                        .then(async response => {
+                            console.log(response.data);
+                        })
+                        .catch( er => {
+                            console.log("Error on sending to Dispatcher...");
+                            console.log(er.SendPushResponse);
+                        });
+        
+                    }else{
+                        let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+        
+                        console.log("sendPushRequest JSON");
+                        console.log("%j",sendPushRequest);
+                        console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                        const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                        axios.post(endpoint,
+                        {sendPushRequest}
+                        )
+                        .then(async response => {
+                            console.log(response.data);
+                        })
+                        .catch( er => {
+                            console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
+                            console.log(er);
+                        });
+                    }
+                }else 
+                if(channel.channel_id == 2){
+                    // SMS
+
+                }
+                if(channel.channel_id == 2){
+                    // WHATSAPP
+                    
+                }
+                if(channel.channel_id == 2){
+                    // WEB PUSH NOTIFICATION
+                    
+                }
+                if(channel.channel_id == 2){
+                    // EMAIL
+                    
+                }
+                if(channel.channel_id == 2){
+                    // INN APP MESSAGE
+                    
+                }
+
+            });
+
         });
         console.log("ending connection");
         connection.release();
@@ -723,5 +768,66 @@ let getDateTime = () =>{
     var dateTime = date+' '+time;
     return dateTime
 };
+
+async function teste(cm_id,app_id){
+    var l = [];
+    var ids = await getChannelProviderIds(cm_id);
+    // console.log("ids")
+    // console.log(ids)
+    var channel_data = [];
+    channel_data = await ids.map(async obj  =>{
+        return await getChannelInfo(obj.channel_provider_id,app_id);
+    })
+    
+    const response = await Promise.all(channel_data);
+    // console.log("response")
+    // console.log(response)
+    for(i=0;i<response.length;i++){
+        var c = {};
+        var x = await getChannelId(ids[i].channel_provider_id);
+        // console.log(x);
+        c[x.provider_name] = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
+        l.push(c);
+    }
+    // console.log(c)
+    return l;
+}
+
+async function getChannelInfo(channel_id,app_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT acc.user,acc.password,acc.key,acc.certificate,acc.package_name,acc.class_name,acc.apns_topic,acc.channel_id as channel_provider_id 
+        FROM app_channel_config acc
+        WHERE acc.app_id = ${app_id}
+        and acc.channel_id = ${channel_id};`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    var ans = await Promise.resolve(sql);
+    return sql;
+}
+
+async function getChannelProviderIds(cm_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT channel_provider_id,custom_title,custom_body FROM control_message_channel WHERE control_message_id = ${cm_id};`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    var ans = Promise.resolve(sql);
+    return ans;
+}
+
+async function getChannelId(channel_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`SELECT c.name,cp.channel_id as channel_id,cp.endpoint,cp.provider_name FROM channel_provider cp JOIN channel c on c.id = cp.channel_id WHERE cp.id = ${channel_id};`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    var ans = Promise.resolve(sql);
+    return sql[0];
+}
+
 
 module.exports = router;
