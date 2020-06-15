@@ -79,11 +79,6 @@ router.post('/v1',(req,res0,next)=>{
                                         if(err6) throw err6;
                                         console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
-                                        var v2 = await setPerFlag2(not_data.title,"iCarros Entrega Fácil :truck: |* teste *|");
-                                        if(v2)
-                                            console.log("v2 deu true ");
-                                        else
-                                            console.log("v2 deu false")
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
