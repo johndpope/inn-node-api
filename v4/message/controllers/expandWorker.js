@@ -451,8 +451,10 @@ router.post('/v33',async(req,res,next)=>{
                 });
             }
         });
-        console.log("ending connection");
+        console.log("ending connection... Will Call the API again");
         connection.release();
+        let recall  =  axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/expandWorker/v33/');
+        console.log("After Calling ... "+recall.data.message);
     });
 
     return res.status(200).json({
