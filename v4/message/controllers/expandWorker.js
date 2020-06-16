@@ -4,6 +4,11 @@ const router = express.Router();
 const con = require('../connection/DBconnection');
 const ip = require('ip');
 
+const endpoints = [
+    'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
+    'http://'+ip.address()+':8080'+'/api/message/'
+];
 
 router.post('/v1',(req,res0,next)=>{
 
@@ -416,8 +421,8 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON");
                 console.log(sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-
-                axios.post("http://"+ip.address()+":8080"+"/api/message/" ,
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint ,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -434,7 +439,8 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON");
                 console.log("%j",sendPushRequest);
                 console.log("sending message to dispatcher...");
-                axios.post("http://"+ip.address()+":8080"+"/api/message/" ,
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint ,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -446,10 +452,8 @@ router.post('/v33',async(req,res,next)=>{
                 });
             }
         });
-        console.log("ending connection... Will Call the API again");
+        console.log("ending connection...");
         connection.release();
-        let recall  =  axios.post('http://alb-node-api-1101754065.us-east-1.elb.amazonaws.com/api/expandWorker/v33/');
-        console.log("After Calling ... "+recall.data.message);
     });
 
     return res.status(200).json({
