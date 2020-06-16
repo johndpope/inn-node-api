@@ -82,7 +82,7 @@ router.post('/v1',(req,res0,next)=>{
                                         if(err6) throw err6;
                                         console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
-
+                                        var phone = await getSubPhone(subscriber_id,app_id);
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
@@ -133,7 +133,7 @@ router.post('/v1',(req,res0,next)=>{
                                                 subscriber: {
                                                     subscriber_id: subscriber_id,
                                                     registration: user_data.registration,
-                                                    phone: "",
+                                                    phone: phone,
                                                     platform_id: JSON.stringify(user_data.platform_id)
                                                 },
                                                 custom_fields,
@@ -403,7 +403,7 @@ router.post('/v33',async(req,res,next)=>{
             var channelsData;
             var custom_fields;
             var events;
-
+            var phone;
             if(cms_data[control_message_id] == undefined || cms_data[control_message_id] == null){
 
                 appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
@@ -432,9 +432,15 @@ router.post('/v33',async(req,res,next)=>{
             //         break;
             //     }
             // }
+            for(i=0;i<channelsData.length;++i){
+                if(channelsData.channel_id == 2 || channelsData.channel_id == 3){
+                    phone = await getSubPhone(subscriber_id,app_id);
+                    break;
+                }
+            }
 
             if(per_flag == 1){
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
                 if(channels.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
@@ -454,7 +460,7 @@ router.post('/v33',async(req,res,next)=>{
                 });
 
             }else{
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod,phone);
                 if(channels.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
@@ -678,7 +684,7 @@ async function selectFromMLI(){
     return r;
 }
 
-function buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,app_config,not_data,user_data,custom_fields,events,per_flag,is_prod){
+function buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,app_config,not_data,user_data,custom_fields,events,per_flag,is_prod,phone){
     var sendPushRequest = {
 
         control_message: {
@@ -724,7 +730,7 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
         subscriber: {
             subscriber_id: subscriber_id,
             registration: user_data.registration,
-            phone: "",
+            phone: phone != null ? phone: "",
             platform_id: JSON.stringify(user_data.platform_id)
         },
         custom_fields,
@@ -802,6 +808,21 @@ async function getChannelId(channel_id){
     });
     var ans = Promise.resolve(sql);
     return sql[0];
+}
+
+async function getSubPhone(sub_id, app_id){
+    const sql = await new Promise((res,rej)=>{
+        con.query(`select phone from subscriber_phone where app_id = ${app_id} and subscriber_id = ${sub_id}`,(err,row)=>{
+            if(err) throw err;
+            res(JSON.parse(JSON.stringify(row)));
+        })
+    });
+    var r = await Promise.resolve(sql);
+    
+    if(r.length == 0) return "";
+    else {
+        return r[0].phone
+    }
 }
 
 
