@@ -82,11 +82,7 @@ router.post('/v1',(req,res0,next)=>{
                                         if(err6) throw err6;
                                         console.log("personalyzed_flag successfully setted");
                                         var is_prod = await getIsProd(app_id);
-                                        // var v2 = await setPerFlagOptmized(not_data.title,"iCarros Entrega Fácil :truck: |* teste *|");
-                                        // if(v2)
-                                        //     console.log("v2 deu true ");
-                                        // else
-                                        //     console.log("v2 deu false")
+
                                         var per_flag = 0;
                                         if(res6.length > 0)per_flag = 1;
 
@@ -144,12 +140,12 @@ router.post('/v1',(req,res0,next)=>{
 
                                                 events
                                             }
-                                        // console.log("preparing to update control_message_status from 3 to 4");
-                                        // var st = await updateStatus3TO4(control_message_id);
+                                        console.log("preparing to update control_message_status from 3 to 4");
+                                        var st = await updateStatus3TO4(control_message_id);
                                         var channelsData = await teste(control_message_id,app_id);
-                                        // console.log("comecou cacar channels")
-                                        // console.log(channelsData);
-                                        // console.log(channelsData["Firebase"]);
+                                        if(channelsData.length > 0){
+                                            sendPushRequest["channels"] = channelsData;
+                                        }
                                         console.log("sendPushRequest JSON")
                                         console.log("%j",{sendPushRequest});
                                         axios.defaults.headers = {
@@ -429,76 +425,54 @@ router.post('/v33',async(req,res,next)=>{
                 channelsData = cms_data[control_message_id].channelsData;
             }
             // CHECK IF ANY OF THE CUSTOM_BODY OR CUSTOM_TITLE FROM OTHER CHANNELS HAVE CUSTOM_DATA
-            for(i=0;i<channelsData.length;++i){
-                if(setPerFlagOptmized(channelsData[i].custom_title,channelsData[i].custom_body)){
-                    custom_fields = await selectCustomFields(subscriber_id);
-                    events = await selectEvents(subscriber_id,app_id);
-                    break;
+            // for(i=0;i<channelsData.length;++i){
+            //     if(setPerFlagOptmized(channelsData[i].custom_title,channelsData[i].custom_body)){
+            //         custom_fields = await selectCustomFields(subscriber_id);
+            //         events = await selectEvents(subscriber_id,app_id);
+            //         break;
+            //     }
+            // }
+
+            if(per_flag == 1){
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
+                if(channels.length>0){
+                    sendPushRequest["channels"] = channelsData;
                 }
+                console.log("sendPushRequest JSON")
+                console.log(sendPushRequest);
+                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint,
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending to Dispatcher...");
+                    console.log(er.SendPushResponse);
+                });
+
+            }else{
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+                if(channels.length>0){
+                    sendPushRequest["channels"] = channelsData;
+                }
+                console.log("sendPushRequest JSON");
+                console.log("%j",sendPushRequest);
+                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint,
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
+                    console.log(er);
+                });
             }
-
-            channelsData.forEach(channel =>{
-                if(channel.channel_id == 1){
-                    // PUSH NOTIFICATION
-                    if(per_flag == 1){
-                        let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
-        
-                        console.log("sendPushRequest JSON")
-                        console.log(sendPushRequest);
-                        console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                        const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                        axios.post(endpoint,
-                        {sendPushRequest}
-                        )
-                        .then(async response => {
-                            console.log(response.data);
-                        })
-                        .catch( er => {
-                            console.log("Error on sending to Dispatcher...");
-                            console.log(er.SendPushResponse);
-                        });
-        
-                    }else{
-                        let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-        
-                        console.log("sendPushRequest JSON");
-                        console.log("%j",sendPushRequest);
-                        console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                        const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                        axios.post(endpoint,
-                        {sendPushRequest}
-                        )
-                        .then(async response => {
-                            console.log(response.data);
-                        })
-                        .catch( er => {
-                            console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
-                            console.log(er);
-                        });
-                    }
-                }else 
-                if(channel.channel_id == 2){
-                    // SMS
-
-                }
-                if(channel.channel_id == 2){
-                    // WHATSAPP
-                    
-                }
-                if(channel.channel_id == 2){
-                    // WEB PUSH NOTIFICATION
-                    
-                }
-                if(channel.channel_id == 2){
-                    // EMAIL
-                    
-                }
-                if(channel.channel_id == 2){
-                    // INN APP MESSAGE
-                    
-                }
-
-            });
 
         });
         console.log("ending connection");
@@ -785,8 +759,9 @@ async function teste(cm_id,app_id){
     for(i=0;i<response.length;i++){
         var c = {};
         var x = await getChannelId(ids[i].channel_provider_id);
+        if(x.channel_id == 1) continue; // ignore push notification channel
         // console.log(x);
-        c[x.provider_name] = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
+        c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
         l.push(c);
     }
     // console.log(c)
