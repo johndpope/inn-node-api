@@ -442,7 +442,6 @@ router.post('/v33',async(req,res,next)=>{
             if(per_flag == 1){
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
                 if(channelsData.length>0){
-                    console.log("VAI ADICIONAR OS CHANNELS NO JSON CARALHOOOOOOOO")
                     sendPushRequest["channels"] = channelsData;
                 }
                 console.log("sendPushRequest JSON")
@@ -463,7 +462,6 @@ router.post('/v33',async(req,res,next)=>{
             }else{
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod,phone);
                 if(channelsData.length>0){
-                    console.log("VAI ADICIONAR OS CHANNELS NO JSON CARALHOOOOOOOO")
                     sendPushRequest["channels"] = channelsData;
                 }
                 console.log("sendPushRequest JSON");
