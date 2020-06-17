@@ -432,9 +432,6 @@ router.post('/v33',async(req,res,next)=>{
                     phone = await getSubPhone(subscriber_id,app_id);
                     phone_flag=1;
                 }
-                if(channelsData[i].per_flag == "true"){
-                    per_flag = true;
-                }
             }
 
             if(per_flag == 1){
@@ -671,10 +668,7 @@ async function selectFromMLI(){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
-                    WHERE (cm.status = 3 OR cm.status = 4) AND 
-                    mli.message_status_id = 0 AND
-                    cm.silent = 1
-                    LIMIT 499`,(err,row)=>{
+                    LIMIT 3`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
@@ -764,7 +758,8 @@ async function teste(cm_id,app_id){
         var c = {};
         var x = await getChannelId(ids[i].channel_provider_id);
         if(x.channel_id == 1) continue; // ignore push notification channel
-
+        // console.log("provider_data ???")
+        // console.log(response[i])
         var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body);
         c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
         l.push(c);
@@ -780,6 +775,7 @@ async function getChannelInfo(channel_id,app_id){
         WHERE acc.app_id = ${app_id}
         and acc.channel_id = ${channel_id};`,(err,row)=>{
             if(err) throw err;
+            console.log(row)
             res(JSON.parse(JSON.stringify(row)));
         })
     });
