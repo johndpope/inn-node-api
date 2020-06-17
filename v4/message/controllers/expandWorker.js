@@ -386,10 +386,10 @@ router.post('/v33',async(req,res,next)=>{
         });
 
         v3messages.forEach(async message=>{
-            const app_id= "161";
-            const control_message_id = "2720914";
-            const notification_id = "258671049";
-            const subscriber_id = "9130114";
+            const app_id= message.app_id;
+            const control_message_id = message.control_message_id;
+            const notification_id = message.notification_id;
+            const subscriber_id = message.subscriber_id;
             console.log("["+getDateTime()+"]sending => "+notification_id);
 
             if(!updated_ids.includes(control_message_id)){
