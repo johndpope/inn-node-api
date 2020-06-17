@@ -424,28 +424,28 @@ router.post('/v33',async(req,res,next)=>{
                 is_prod = cms_data[control_message_id].is_prod;
                 channelsData = cms_data[control_message_id].channelsData;
             }
-            // CHECK IF ANY OF THE CUSTOM_BODY OR CUSTOM_TITLE FROM OTHER CHANNELS HAVE CUSTOM_DATA
-            // for(i=0;i<channelsData.length;++i){
-            //     if(setPerFlagOptmized(channelsData[i].custom_title,channelsData[i].custom_body)){
-            //         custom_fields = await selectCustomFields(subscriber_id);
-            //         events = await selectEvents(subscriber_id,app_id);
-            //         break;
-            //     }
-            // }
+            
+            // Set extra information due to channels (phone/custom data)
+            var phone_flag=0;
             for(i=0;i<channelsData.length;++i){
-                if(channelsData.channel_id == 2 || channelsData.channel_id == 3){
+                if((channelsData[i].channel_id == 2 || channelsData[i].channel_id == 3) && phone_flag == 0){
                     phone = await getSubPhone(subscriber_id,app_id);
-                    break;
+                    phone_flag=1;
+                }
+                if(channelsData[i].per_flag == "true"){
+                    per_flag = true;
                 }
             }
 
             if(per_flag == 1){
+                custom_fields = await selectCustomFields(subscriber_id);
+                events = await selectEvents(subscriber_id,app_id);
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
                 if(channelsData.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
                 console.log("sendPushRequest JSON")
-                console.log(sendPushRequest);
+                console.log("%j",sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
                 // const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
                 // axios.post(endpoint,
@@ -671,7 +671,10 @@ async function selectFromMLI(){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
-                    LIMIT 10`,(err,row)=>{
+                    WHERE (cm.status = 3 OR cm.status = 4) AND 
+                    mli.message_status_id = 0 AND
+                    cm.silent = 1
+                    LIMIT 499`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
@@ -749,26 +752,24 @@ let getDateTime = () =>{
 async function teste(cm_id,app_id){
     var l = [];
     var ids = await getChannelProviderIds(cm_id);
-    // console.log("ids")
-    // console.log(ids)
+
     var channel_data = [];
     channel_data = await ids.map(async obj  =>{
         return await getChannelInfo(obj.channel_provider_id,app_id);
     })
     
     const response = await Promise.all(channel_data);
-    // console.log("response")
-    // console.log(response)
+
     for(i=0;i<response.length;i++){
         var c = {};
         var x = await getChannelId(ids[i].channel_provider_id);
         if(x.channel_id == 1) continue; // ignore push notification channel
-        // console.log(x);
-        var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body) ? "1":"0";
-        c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:custom_per_flag,custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
+
+        var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body);
+        c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
         l.push(c);
     }
-    // console.log(c)
+
     return l;
 }
 
