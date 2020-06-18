@@ -144,8 +144,8 @@ router.post('/v1',(req,res0,next)=>{
                                             }
                                         console.log("preparing to update control_message_status from 3 to 4");
                                         var st = await updateStatus3TO4(control_message_id);
-                                        var channelsData = await teste(control_message_id,app_id);
-                                        if(channelsData.length > 0){
+                                        var channelsData = await getControlMessageChannels(control_message_id,app_id);
+                                        if(Object.keys(channelsData).length > 0){
                                             sendPushRequest["channels"] = channelsData;
                                         }
                                         console.log("sendPushRequest JSON")
@@ -412,7 +412,7 @@ router.post('/v33',async(req,res,next)=>{
                 not_data = await selectNotificationData(control_message_id);
                 per_flag = setPerFlagOptmized(not_data.title,not_data.body);
                 is_prod = await getIsProd(app_id);
-                channelsData = await teste(control_message_id,app_id);
+                channelsData = await getControlMessageChannels(control_message_id,app_id);
                 cms_data[control_message_id] = {appConfigAndUserData,
                                not_data,
                                per_flag,
@@ -430,8 +430,9 @@ router.post('/v33',async(req,res,next)=>{
             
             // Set extra information due to channels (phone/custom data)
             var phone_flag=0;
-            for(i=0;i<channelsData.length;++i){
-                if((channelsData[i].channel_id == 2 || channelsData[i].channel_id == 3) && phone_flag == 0){
+            var values = Object.values(channelsData);
+            for(i=0;i<values.length;++i){
+                if((values[i].channel_id == 2 || values[i].channel_id == 3) && phone_flag == 0){
                     phone = await getSubPhone(subscriber_id,app_id);
                     phone_flag=1;
                 }
@@ -441,7 +442,7 @@ router.post('/v33',async(req,res,next)=>{
                 custom_fields = await selectCustomFields(subscriber_id);
                 events = await selectEvents(subscriber_id,app_id);
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
-                if(channelsData.length>0){
+                if(values.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
                 console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
@@ -461,7 +462,7 @@ router.post('/v33',async(req,res,next)=>{
             else
                 {
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-                if(channelsData.length>0){
+                if(values.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
                 console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
@@ -747,8 +748,8 @@ let getDateTime = () =>{
     return dateTime
 };
 
-async function teste(cm_id,app_id){
-    var l = [];
+async function getControlMessageChannels(cm_id,app_id){
+    var c = {};
     var ids = await getChannelProviderIds(cm_id);
 
     var channel_data = [];
@@ -759,16 +760,15 @@ async function teste(cm_id,app_id){
     const response = await Promise.all(channel_data);
 
     for(i=0;i<response.length;i++){
-        var c = {};
+
         var x = await getChannelId(ids[i].channel_provider_id);
         if(x.channel_id == 1) continue; // ignore push notification channel
 
         var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body);
-        c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
-        l.push(c);
+        c[x.name] = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
     }
 
-    return l;
+    return c;
 }
 
 async function getChannelInfo(channel_id,app_id){
