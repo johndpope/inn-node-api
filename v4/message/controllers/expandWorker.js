@@ -1,13 +1,15 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-var con = require('../connection/DBconnection');
-
+const con = require('../connection/DBconnection');
+const ip = require('ip');
 
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
+    'http://'+ip.address()+':8080'+'/api/message/'
 ];
+
 router.post('/v1',(req,res0,next)=>{
 
     con.getConnection(function(err99,connection){
@@ -362,7 +364,7 @@ router.post('/v3',(req,ress,next)=>{
         });
 
     })
-})
+});
 
 
 router.post('/v33',async(req,res,next)=>{
@@ -370,7 +372,7 @@ router.post('/v33',async(req,res,next)=>{
     con.getConnection(async function(err,connection){
         if(err) throw err;
         console.log("["+getDateTime()+"] --- Started V33 ---");
-        console.log("["+getDateTime()+"] --- Successfully connected to DataBase!!");
+        console.log("["+getDateTime()+"] --- Successfully connected to Database!!");
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
@@ -385,12 +387,12 @@ router.post('/v33',async(req,res,next)=>{
             l.push(message.notification_id);
         });
 
-        v3messages.forEach(async message=>{
+        v3messages.forEach(
+            async (message,key) => {
             const app_id= message.app_id;
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
             const subscriber_id = message.subscriber_id;
-            console.log("["+getDateTime()+"]sending => "+notification_id);
 
             if(!updated_ids.includes(control_message_id)){
                 var cmUp = await updateStatus3TO4(control_message_id);
@@ -417,7 +419,8 @@ router.post('/v33',async(req,res,next)=>{
                                is_prod,
                                channelsData
                               }
-            }else{
+            }
+            else{
                 appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
                 not_data = cms_data[control_message_id].not_data;
                 per_flag = cms_data[control_message_id].per_flag;
@@ -441,11 +444,9 @@ router.post('/v33',async(req,res,next)=>{
                 if(channelsData.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
-                console.log("sendPushRequest JSON")
-                console.log("%j",sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
+                axios.post(endpoint ,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -456,16 +457,16 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er.SendPushResponse);
                 });
 
-            }else{
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod,phone);
+            }
+            else
+                {
+                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
                 if(channelsData.length>0){
                     sendPushRequest["channels"] = channelsData;
                 }
-                console.log("sendPushRequest JSON");
-                console.log("%j",sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint,
+                axios.post(endpoint ,
                 {sendPushRequest}
                 )
                 .then(async response => {
@@ -476,9 +477,10 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
+                isLast(v3messages,message,key);
+            });
 
-        });
-        console.log("ending connection");
+        console.log("ending connection...");
         connection.release();
     });
 
@@ -539,11 +541,10 @@ async function updateStatus3TO4(CM_id){
         con.query(`CALL update_cm_status_3_to_4 (?)`,CM_id,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
-        })
+        });
+        console.log("control_message "+CM_id+" updated");
     });
-    console.log("control_message "+CM_id+" updated");
-    var r = await Promise.resolve(sql);
-    return r;
+    return await Promise.resolve(sql);;
 }
 
 
@@ -823,4 +824,13 @@ async function getSubPhone(sub_id, app_id){
 }
 
 
+function isLast(v3messages,message,key)
+{
+    if (Object.is(v3messages.length -1,key)) {
+        let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
+        console.log('--------------------------------[Calling The EW AGAIN ..'+recall+']--------------------------------------');
+        console.log('              http://'+ip.address()+':8080'+'/api/expandWorker/v33/                         ');
+        console.log('--------------------------------------------------------------------------------------------');
+    }
+}
 module.exports = router;
