@@ -358,7 +358,7 @@ router.post('/v3',(req,ress,next)=>{
         });
 
     })
-})
+});
 
 
 router.post('/v33',async(req,res,next)=>{
@@ -366,7 +366,7 @@ router.post('/v33',async(req,res,next)=>{
     con.getConnection(async function(err,connection){
         if(err) throw err;
         console.log("["+getDateTime()+"] --- Started V33 ---");
-        console.log("["+getDateTime()+"] --- Successfully connected to DataBase!!");
+        console.log("["+getDateTime()+"] --- Successfully connected to Database!!");
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
@@ -381,7 +381,8 @@ router.post('/v33',async(req,res,next)=>{
             l.push(message.notification_id);
         });
 
-        v3messages.forEach(async message=>{
+        v3messages.forEach(
+            async (message,key) => {
             const app_id= message.app_id;
             const control_message_id = message.control_message_id;
             const notification_id = message.notification_id;
@@ -407,20 +408,19 @@ router.post('/v33',async(req,res,next)=>{
                                per_flag,
                                is_prod
                               }
-            }else{
+            }
+            else{
                 appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
                 not_data = cms_data[control_message_id].not_data;
                 per_flag = cms_data[control_message_id].per_flag;
                 is_prod = cms_data[control_message_id].is_prod;
             }
+
             if(per_flag == 1){
                 var custom_fields = await selectCustomFields(subscriber_id);
                 var events = await selectEvents(subscriber_id,app_id);
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod);
-
-                console.log("sendPushRequest JSON");
-                console.log(sendPushRequest);
-                console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
+                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
                 axios.post(endpoint ,
                 {sendPushRequest}
@@ -433,12 +433,11 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er.SendPushResponse);
                 });
 
-            }else{
+            }
+            else
+                {
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-
-                console.log("sendPushRequest JSON");
-                console.log("%j",sendPushRequest);
-                console.log("sending message to dispatcher...");
+                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
                 axios.post(endpoint ,
                 {sendPushRequest}
@@ -451,7 +450,9 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
-        });
+                isLast(v3messages,message,key);
+            });
+
         console.log("ending connection...");
         connection.release();
     });
@@ -513,11 +514,10 @@ async function updateStatus3TO4(CM_id){
         con.query(`CALL update_cm_status_3_to_4 (?)`,CM_id,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
-        })
+        });
+        console.log("control_message "+CM_id+" updated");
     });
-    console.log("control_message "+CM_id+" updated");
-    var r = await Promise.resolve(sql);
-    return r;
+    return await Promise.resolve(sql);;
 }
 
 
@@ -719,5 +719,13 @@ let getDateTime = () =>{
     var dateTime = date+' '+time;
     return dateTime
 };
-
+function isLast(v3messages,message,key)
+{
+    if (Object.is(v3messages.length -1,key)) {
+        let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
+        console.log('--------------------------------[Calling The EW AGAIN ..'+recall+']--------------------------------------');
+        console.log('              http://'+ip.address()+':8080'+'/api/expandWorker/v33/                         ');
+        console.log('--------------------------------------------------------------------------------------------');
+    }
+}
 module.exports = router;
