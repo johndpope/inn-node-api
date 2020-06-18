@@ -444,17 +444,17 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON")
                 console.log("%j",sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                // const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                // axios.post(endpoint,
-                // {sendPushRequest}
-                // )
-                // .then(async response => {
-                //     console.log(response.data);
-                // })
-                // .catch( er => {
-                //     console.log("Error on sending to Dispatcher...");
-                //     console.log(er.SendPushResponse);
-                // });
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint,
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending to Dispatcher...");
+                    console.log(er.SendPushResponse);
+                });
 
             }else{
                 let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod,phone);
@@ -464,17 +464,17 @@ router.post('/v33',async(req,res,next)=>{
                 console.log("sendPushRequest JSON");
                 console.log("%j",sendPushRequest);
                 console.log("["+getDateTime()+"] --- Sending message "+notification_id+" to dispatcher....");
-                // const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                // axios.post(endpoint,
-                // {sendPushRequest}
-                // )
-                // .then(async response => {
-                //     console.log(response.data);
-                // })
-                // .catch( er => {
-                //     console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
-                //     console.log(er);
-                // });
+                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                axios.post(endpoint,
+                {sendPushRequest}
+                )
+                .then(async response => {
+                    console.log(response.data);
+                })
+                .catch( er => {
+                    console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
+                    console.log(er);
+                });
             }
 
         });
@@ -668,7 +668,10 @@ async function selectFromMLI(){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
-                    LIMIT 3`,(err,row)=>{
+                    WHERE (cm.status = 3 OR cm.status = 4) AND 
+                    mli.message_status_id = 0 AND
+                    cm.silent = 1
+                    LIMIT 499`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
@@ -758,8 +761,7 @@ async function teste(cm_id,app_id){
         var c = {};
         var x = await getChannelId(ids[i].channel_provider_id);
         if(x.channel_id == 1) continue; // ignore push notification channel
-        // console.log("provider_data ???")
-        // console.log(response[i])
+
         var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body);
         c = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i][0]};
         l.push(c);
