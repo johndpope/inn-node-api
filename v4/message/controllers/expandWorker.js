@@ -6,8 +6,7 @@ const ip = require('ip');
 
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
-    'http://'+ip.address()+':8080'+'/api/message/'
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
 ];
 
 router.post('/v1',(req,res0,next)=>{
@@ -370,8 +369,9 @@ router.post('/v33',async(req,res,next)=>{
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
-        var v3messages = await selectFromMLI();
-        console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
+        let v3messages = await selectFromMLI();
+        console.log("["+getDateTime()+"] --- Succesfully selected ["+v3messages.length+"] messages from Message_log_insert table ---");
+        noData(v3messages);
         var updated_ids = [];
         var cms_data={};
         var l = [];
@@ -450,7 +450,7 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
-                isLast(v3messages,message,key);
+                isLast(v3messages,key);
             });
 
         console.log("ending connection...");
@@ -645,7 +645,7 @@ async function selectFromMLI(){
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
                     mli.message_status_id = 0 AND
                     cm.silent = 1
-                    LIMIT 499`,(err,row)=>{
+                    LIMIT 999`,(err,row)=>{
                         if(err) throw err;
                         res(row);
         })
@@ -719,13 +719,22 @@ let getDateTime = () =>{
     var dateTime = date+' '+time;
     return dateTime
 };
-function isLast(v3messages,message,key)
+function isLast(v3messages,key)
 {
     if (Object.is(v3messages.length -1,key)) {
         let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-        console.log('--------------------------------[Calling The EW AGAIN ..'+recall+']--------------------------------------');
-        console.log('              http://'+ip.address()+':8080'+'/api/expandWorker/v33/                         ');
+        console.log('-------------------------[Calling The EW AGAIN..'+recall.message+']-------------------------');
+        console.log('                      http://'+ip.address()+':8080/api/expandWorker/v33/                    ');
         console.log('--------------------------------------------------------------------------------------------');
+    }
+}
+function noData(v3messages)
+{
+    if ((v3messages.length === null) || (v3messages.length === 0)) {
+        let recall  =  axios.post('http://'+ip.address()+':8080/api/expandWorker/v33/');
+        console.log('-------------------------[No messages found.. Calling again..'+recall.message+']------------------------');
+        console.log('                           http://'+ip.address()+':8080/api/expandWorker/v33/                           ');
+        console.log('--------------------------------------------------------------------------------------------------------');
     }
 }
 module.exports = router;
