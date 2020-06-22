@@ -723,7 +723,7 @@ function isLast(v3messages,key)
 {
     if (Object.is(v3messages.length -1,key)) {
         let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-        console.log('-------------------------[Calling The EW AGAIN..'+recall.message+']-------------------------');
+        console.log('-------------------------[Calling The EW AGAIN..]-------------------------------------------');
         console.log('                      http://'+ip.address()+':8080/api/expandWorker/v33/                    ');
         console.log('--------------------------------------------------------------------------------------------');
     }
@@ -732,7 +732,7 @@ function noData(v3messages)
 {
     if ((v3messages.length === null) || (v3messages.length === 0)) {
         let recall  =  axios.post('http://'+ip.address()+':8080/api/expandWorker/v33/');
-        console.log('-------------------------[No messages found.. Calling again..]------------------------');
+        console.log('-------------------------[No messages found.. Calling again..]------------------------------------------');
         console.log('                           http://'+ip.address()+':8080/api/expandWorker/v33/                           ');
         console.log('--------------------------------------------------------------------------------------------------------');
     }
