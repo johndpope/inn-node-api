@@ -524,7 +524,7 @@ async function updateStatus3TO4(CM_id){
 
 async function updateMLISentAt(notification_id){
     const sql = await new Promise((res,rej)=>{
-        con.query("UPDATE message_log_insert set created_in = NOW() where id = ?;",notification_id ,(err,row)=>{
+        con.query("CALL update_mli_sent_at (?);",notification_id ,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
