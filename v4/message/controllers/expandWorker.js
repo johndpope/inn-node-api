@@ -733,7 +733,7 @@ function isLast(v3messages,key)
  async function  noData(array)
 {
     if (array.length === 0) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         console.log('-------------------------[No messages found.. Calling EW again..]------------------------------------------');
         await  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
     }
