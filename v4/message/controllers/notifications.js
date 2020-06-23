@@ -22,12 +22,9 @@ let isEmpty = (val) => {
     }
 };
 let getDateTime = () =>{
-    var today = new Date();
-    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-    var dateTime = date+' '+time;
-    return dateTime
+    return new Date().toLocaleString('en-US', {
+        timeZone: 'America/Sao_Paulo'
+    })
 };
 
 exports.send = async (req,res,next) =>{
@@ -1183,9 +1180,9 @@ let silentPush =(req,res) => {
 };
 
 function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id){
-    let sent_at = getDateTime();
+    //let sent_at = getDateTime();
     return new Promise((resolve,reject)=>{
-        con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,sent_at,p_control_message_id],(error,response)=>{
+        con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],(error,response)=>{
             if(error) reject(error);
             resolve(response);
         }

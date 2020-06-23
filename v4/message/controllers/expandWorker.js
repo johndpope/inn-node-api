@@ -372,7 +372,7 @@ router.post('/v33',async(req,res,next)=>{
         };
         let v3messages = await selectFromMLI();
         console.log("["+getDateTime()+"] --- Succesfully selected ["+v3messages.length+"] messages from Message_log_insert table ---");
-        noData(v3messages);
+       v3messages =  noData(v3messages);
         var updated_ids = [];
         var cms_data={};
         var l = [];
@@ -728,13 +728,12 @@ function isLast(v3messages,key)
         console.log('--------------------------------------------------------------------------------------------');
     }
 }
-function noData(v3messages)
+async function  noData(array)
 {
-    if (isEmpty(v3messages)) {
-        let recall  =  axios.post('http://'+ip.address()+':8080/api/expandWorker/v33/');
-        console.log('-------------------------[No messages found.. Calling again..]------------------------------------------');
-        console.log('                           http://'+ip.address()+':8080/api/expandWorker/v33/                           ');
-        console.log('--------------------------------------------------------------------------------------------------------');
+    if (array.length === 0) {
+         let newArray = await selectFromMLI();
+        console.log('-------------------------[No messages found.. Calling selectFromMLI again..]------------------------------------------');
+        return newArray
     }
 }
 let isEmpty = (val) => {
