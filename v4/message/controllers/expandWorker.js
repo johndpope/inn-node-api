@@ -730,11 +730,29 @@ function isLast(v3messages,key)
 }
 function noData(v3messages)
 {
-    if ((v3messages.length === null) || (v3messages.length === 0)) {
+    if (isEmpty(v3messages)) {
         let recall  =  axios.post('http://'+ip.address()+':8080/api/expandWorker/v33/');
         console.log('-------------------------[No messages found.. Calling again..]------------------------------------------');
         console.log('                           http://'+ip.address()+':8080/api/expandWorker/v33/                           ');
         console.log('--------------------------------------------------------------------------------------------------------');
     }
 }
+let isEmpty = (val) => {
+    let typeOfVal = typeof val;
+    switch(typeOfVal){
+        case 'object':
+            return (val.length === 0) || !Object.keys(val).length;
+            break;
+        case 'string':
+            let str = val.trim();
+            return str === '' || str === undefined;
+            break;
+        case 'number':
+            return val === '';
+            break;
+        default:
+            return val === '' || val === undefined;
+    }
+};
+
 module.exports = router;
