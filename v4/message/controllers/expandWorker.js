@@ -376,6 +376,7 @@ router.post('/v33',async(req,res,next)=>{
         var updated_ids = [];
         var cms_data={};
         var l = [];
+
         noData(v3messages);
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
@@ -729,12 +730,12 @@ function isLast(v3messages,key)
         console.log('--------------------------------------------------------------------------------------------');
     }
 }
- function  noData(array)
+ async function  noData(array)
 {
     if (array.length === 0) {
-
+        await new Promise(resolve => setTimeout(resolve, 2000));
         console.log('-------------------------[No messages found.. Calling EW again..]------------------------------------------');
-        axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
+        await  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
     }
 }
 
