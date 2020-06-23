@@ -7,7 +7,8 @@ const NotController = require('../controllers/notifications');
 const persistController = require('../controllers/persist');
 
 // Handle incoming POST request to process the json to send to FCM
-router.post('/' ,NotController.checkRequestFileds,NotController.checkCustomFields,NotController.checkEvents,NotController.checkEmojis, NotController.send);
+// router.post('/' ,NotController.checkRequestFileds,NotController.checkCustomFields,NotController.checkEvents,NotController.checkEmojis, NotController.send);
+router.post('/' ,NotController.send);
 
 // Handle incoming POST request to the Persist
 router.post('/persist', persistController);

@@ -1,8 +1,9 @@
-const axios = require('axios').default;
+const axios = require('axios');
 const apn = require('apn');
 const http = require('https');
 const fs = require('fs');
 const con = require('../connection/DBconnection');
+const { Console } = require('console');
 
 let isEmpty = (val) => {
     let typeOfVal = typeof val;
@@ -32,54 +33,56 @@ let getDateTime = () =>{
 
 exports.send = async (req,res,next) =>{
 
-   let platform_id= req.body.sendPushRequest.subscriber.platform_id;
-    let firebase_ios = req.body.sendPushRequest.app.firebase_ios;
-    let app_id = req.body.sendPushRequest.app.app_id;
-    let p_id  = req.body.sendPushRequest.control_message.notid;
-    let subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
-    let control_message_id = req.body.sendPushRequest.control_message.control_message_id;
+//    let platform_id= req.body.sendPushRequest.subscriber.platform_id;
+//     let firebase_ios = req.body.sendPushRequest.app.firebase_ios;
+//     let app_id = req.body.sendPushRequest.app.app_id;
+//     let p_id  = req.body.sendPushRequest.control_message.notid;
+//     let subscriber_id  = req.body.sendPushRequest.subscriber.subscriber_id;
+//     let control_message_id = req.body.sendPushRequest.control_message.control_message_id;
     //if the app is in production
-    let is_production =req.body.sendPushRequest.app.production;
-    let apns_topic = req.body.sendPushRequest.app.apns.apns_topic;
+    // let is_production =req.body.sendPushRequest.app.production;
+    // let apns_topic = req.body.sendPushRequest.app.apns.apns_topic;
     // if the pushes are silent
-     let silent = req.body.sendPushRequest.control_message.silent ;
+    //  let silent = req.body.sendPushRequest.control_message.silent ;
 
-     if(isEmpty(silent)) silent="0" ;
+    //  if(isEmpty(silent)) silent="0" ;
 try {
 
+    console.log("VAMO MANDA UM SMS??");
+    // handleWhatsapp(req.body.sendPushRequest.channels.WhatsApp,req.body.sendPushRequest.subscriber.phone);
+    handleSMS(req.body.sendPushRequest.channels.WhatsApp,req.body.sendPushRequest.subscriber.phone);
+    // switch (true) {
+    //     case ((silent === "1") && (firebase_ios === "1")) :
+    //         silentPush(req, res);
+    //         break;
 
-    switch (true) {
-        case ((silent === "1") && (firebase_ios === "1")) :
-            silentPush(req, res);
-            break;
+    //     case ((silent === "0") && (firebase_ios === "1") && (platform_id === "1") && (app_id !== "213")) :
+    //         send2FcmFirebaseiOS(req, res);
+    //         break;
 
-        case ((silent === "0") && (firebase_ios === "1") && (platform_id === "1") && (app_id !== "213")) :
-            send2FcmFirebaseiOS(req, res);
-            break;
+    //     case  ((silent === "0") && (firebase_ios === "0") && (platform_id === "1") && (app_id !== "213")) :
+    //         send2FCM(req, res);
+    //         break;
 
-        case  ((silent === "0") && (firebase_ios === "0") && (platform_id === "1") && (app_id !== "213")) :
-            send2FCM(req, res);
-            break;
+    //     case ((silent === "0") && (platform_id === "1") && (app_id === "213")):
+    //         send2iCarros(req, res);
+    //         break;
 
-        case ((silent === "0") && (platform_id === "1") && (app_id === "213")):
-            send2iCarros(req, res);
-            break;
+    //     case ((silent === "0") && (firebase_ios === "1") && (platform_id === "2")):
+    //         send2FcmFirebaseiOS(req, res);
+    //         break;
 
-        case ((silent === "0") && (firebase_ios === "1") && (platform_id === "2")):
-            send2FcmFirebaseiOS(req, res);
-            break;
+    //     case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "1")):
+    //         await send2ApnsProd(req, res, apns_topic);
+    //         break;
 
-        case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "1")):
-            await send2ApnsProd(req, res, apns_topic);
-            break;
+    //     case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "0")):
+    //         await send2ApnsDev(req, res, apns_topic);
+    //         break;
 
-        case ((silent === "0") && (firebase_ios === "0") && (platform_id === "2") && (is_production === "0")):
-            await send2ApnsDev(req, res, apns_topic);
-            break;
-
-    }
+    // }
 }catch (e) {
-    await saveResponses(p_id, subscriber_id, "Catch EXCEPTION", "Catch EXCEPTION", platform_id, '-99', e, control_message_id);
+    // await saveResponses(p_id, subscriber_id, "Catch EXCEPTION", "Catch EXCEPTION", platform_id, '-99', e, control_message_id);
     res.status(500).json({
         exception : e
     });
@@ -1181,6 +1184,56 @@ let silentPush =(req,res) => {
             }
         });
 };
+
+let handleWhatsapp = (channel,phone) =>{
+    const ApiUrl = channel.url;
+    console.log("ENVIANDO WHATSAPP")
+    const json = {
+        phone: "55"+phone,
+        message: channel.custom_title+" : "+channel.custom_body,
+        group: "Whatsapp Oficial",
+        channel: "WHATSAPP",
+    };
+    axios.defaults.headers = {
+        'Authorization':'6X8PNI3B6CMBV8IPCE7LY5QLHHYM6AOUZZ5WTKSJHJCOZYS9RK2Z7PIKY4JD',
+        'Content-Type': 'application/json'
+    };
+
+    axios.post(ApiUrl,json).
+        then((resp)=>{
+            console.log("Successfully sent Whatsapp");
+            console.log(resp);
+            return resp;
+        }).
+        catch((resp)=>{
+            console.log("Error while sending Whatsapp");
+            console.log(resp);
+            return false;
+        })
+}
+
+function handleSMS(channel,phone){
+    console.log("chegouuuuuuuuuuuuu")
+    const {user, password} = channel.provider_data;
+    var apiUrl = channel.url;
+    if(channel.provider_data.channel_provider_id == 9)apiUrl = apiUrl+"?msisdn=55"+phone+'&sms_text='+channel.custom_body+'&user='+user+"&passwd="+password+"&tipo=shortOne";
+    axios.defaults.headers = {
+        'Content-Type': 'application/json',
+    }
+    
+    console.log("TAMO MANDANDO PRA "+apiUrl);
+    axios.post(apiUrl).
+    then((resp)=>{
+        console.log("Successfully sent SMS");
+        console.log(resp);
+        return resp;
+    }).
+    catch((resp)=>{
+        console.log("Error while sending SMS");
+        console.log(resp);
+        return false;
+    })
+}
 
 function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id){
     let sent_at = getDateTime();

@@ -389,96 +389,7 @@ router.post('/v33',async(req,res,next)=>{
 
         v3messages.forEach(
             async (message,key) => {
-            const app_id= message.app_id;
-            const control_message_id = message.control_message_id;
-            const notification_id = message.notification_id;
-            const subscriber_id = message.subscriber_id;
-
-            if(!updated_ids.includes(control_message_id)){
-                var cmUp = await updateStatus3TO4(control_message_id);
-                updated_ids.push(control_message_id);
-            }
-            var appConfigAndUserData;
-            var not_data;
-            var per_flag;
-            var is_prod;
-            var channelsData;
-            var custom_fields;
-            var events;
-            var phone;
-            if(cms_data[control_message_id] == undefined || cms_data[control_message_id] == null){
-
-                appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
-                not_data = await selectNotificationData(control_message_id);
-                per_flag = setPerFlagOptmized(not_data.title,not_data.body);
-                is_prod = await getIsProd(app_id);
-                channelsData = await getControlMessageChannels(control_message_id,app_id);
-                cms_data[control_message_id] = {appConfigAndUserData,
-                               not_data,
-                               per_flag,
-                               is_prod,
-                               channelsData
-                              }
-            }
-            else{
-                appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
-                not_data = cms_data[control_message_id].not_data;
-                per_flag = cms_data[control_message_id].per_flag;
-                is_prod = cms_data[control_message_id].is_prod;
-                channelsData = cms_data[control_message_id].channelsData;
-            }
-            
-            // Set extra information due to channels (phone/custom data)
-            var phone_flag=0;
-            var values = Object.values(channelsData);
-            for(i=0;i<values.length;++i){
-                if((values[i].channel_id == 2 || values[i].channel_id == 3) && phone_flag == 0){
-                    phone = await getSubPhone(subscriber_id,app_id);
-                    phone_flag=1;
-                }
-            }
-
-            if(per_flag == 1){
-                custom_fields = await selectCustomFields(subscriber_id);
-                events = await selectEvents(subscriber_id,app_id);
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
-                if(values.length>0){
-                    sendPushRequest["channels"] = channelsData;
-                }
-                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint ,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending to Dispatcher...");
-                    console.log(er.SendPushResponse);
-                });
-
-            }
-            else
-                {
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-                if(values.length>0){
-                    sendPushRequest["channels"] = channelsData;
-                }
-                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint ,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
-                    console.log(er);
-                });
-            }
-                isLast(v3messages,message,key);
+                console.log("ENTROU NO NEGOCIO VAZIO BUETO")
             });
 
         console.log("ending connection...");
@@ -489,6 +400,122 @@ router.post('/v33',async(req,res,next)=>{
         message:"Success"
     })
 });
+
+router.post('/sms',(req,res,next)=>{
+    
+    var sendPushRequest = { 
+        
+        control_message: {
+            control_message_id: "",
+            title: "",
+            body:  "",
+            message: "",
+            url: "",
+            image_url: "",
+            url_type: "" ,
+            notid: "",
+            personalised_flag: "",
+            silent:""
+        },
+        channel: {
+            provider_id: "",
+            end_point: ""
+        },
+        app: {
+        },
+        subscriber: {
+            phone:"34991166159"
+        },
+        custom_fields:{},
+        events:{},
+        channels: {
+			WhatsApp: {
+				channel_name: "SMS",
+				channel_id: 2,
+				url: "https://sendsms.eialerta.com.br/post/index.php",
+				per_flag: "true",
+				custom_title: "Teste",
+				custom_body: "TESTE ENVIO DE SMS",
+				provider_data: {
+					user: "octavio.inngage",
+					password: "EiAlerta321",
+					key: "key 9",
+					certificate: "certificate 9",
+					package_name: "packagename 99",
+					class_name: "classname 9",
+					apns_topic: "apns 9",
+					channel_provider_id: 9
+				}
+			}
+		}
+    }
+    console.log(sendPushRequest);
+    axios.defaults.headers = {
+        'Content-Type': 'application/json'
+    };  
+    axios.post('http://localhost:8080/api/message',{sendPushRequest})
+    res.status(200).json({
+        message:"OK",
+    })
+})
+
+router.post('/wpp',(req,res,next)=>{
+    
+    var sendPushRequest = { 
+        
+        control_message: {
+            control_message_id: "",
+            title: "",
+            body:  "",
+            message: "",
+            url: "",
+            image_url: "",
+            url_type: "" ,
+            notid: "",
+            personalised_flag: "",
+            silent:""
+        },
+        channel: {
+            provider_id: "",
+            end_point: ""
+        },
+        app: {
+        },
+        subscriber: {
+            phone:"34991166159"
+        },
+        custom_fields:{},
+        events:{},
+        channels: {
+			WhatsApp: {
+				channel_name: "WPP",
+				channel_id: 3,
+				url: "https://comercial.tm2digital.com/chat/api/send/me",
+				per_flag: "true",
+				custom_title: "Teste",
+				custom_body: "ENVIANDOWHATSAPP",
+				provider_data: {
+					user: "octavio.inngage",
+					password: "EiAlerta321",
+					key: "key 8",
+					certificate: "certificate 8",
+					package_name: "packagename 8",
+					class_name: "classname 8",
+					apns_topic: "apns 8",
+					channel_provider_id: 8
+				}
+			}
+		}
+    }
+    console.log(sendPushRequest);
+    axios.defaults.headers = {
+        'Content-Type': 'application/json'
+    };  
+    axios.post('http://localhost:8080/api/message',{sendPushRequest})
+    res.status(200).json({
+        message:"OK",
+    })
+})
 
 async function getIsProd(app_id){
     const sql = await new Promise((res,rej)=>{
@@ -545,7 +572,7 @@ async function updateStatus3TO4(CM_id){
         });
         console.log("control_message "+CM_id+" updated");
     });
-    return await Promise.resolve(sql);;
+    return await Promise.resolve(sql);
 }
 
 
