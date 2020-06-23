@@ -372,10 +372,11 @@ router.post('/v33',async(req,res,next)=>{
         };
         let v3messages = await selectFromMLI();
         console.log("["+getDateTime()+"] --- Succesfully selected ["+v3messages.length+"] messages from Message_log_insert table ---");
-       v3messages =  noData(v3messages);
+
         var updated_ids = [];
         var cms_data={};
         var l = [];
+        noData(v3messages);
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
             await updateMLISentAt(message.notification_id);
@@ -728,30 +729,14 @@ function isLast(v3messages,key)
         console.log('--------------------------------------------------------------------------------------------');
     }
 }
-async function  noData(array)
+ function  noData(array)
 {
     if (array.length === 0) {
-         let newArray = await selectFromMLI();
-        console.log('-------------------------[No messages found.. Calling selectFromMLI again..]------------------------------------------');
-        return newArray
+
+        console.log('-------------------------[No messages found.. Calling EW again..]------------------------------------------');
+        axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
     }
 }
-let isEmpty = (val) => {
-    let typeOfVal = typeof val;
-    switch(typeOfVal){
-        case 'object':
-            return (val.length === 0) || !Object.keys(val).length;
-            break;
-        case 'string':
-            let str = val.trim();
-            return str === '' || str === undefined;
-            break;
-        case 'number':
-            return val === '';
-            break;
-        default:
-            return val === '' || val === undefined;
-    }
-};
+
 
 module.exports = router;
