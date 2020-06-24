@@ -377,7 +377,7 @@ router.post('/v33',async(req,res,next)=>{
         var cms_data={};
         var l = [];
 
-
+        noData(v3messages);
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
             //await updateMLISentAt(message.notification_id);
@@ -507,8 +507,8 @@ async function updateStatus0TO9(not_id){
         })
     });
     console.log("message_log_insert "+not_id+" updated from 0 to 9");
-    var r = await Promise.resolve(sql);
-    return r;
+    return await Promise.resolve(sql);
+
 }
 
 
@@ -520,7 +520,7 @@ async function updateStatus3TO4(CM_id){
         });
         console.log("control_message "+CM_id+" updated");
     });
-    return await Promise.resolve(sql);;
+    return await Promise.resolve(sql);
 }
 
 
@@ -642,25 +642,20 @@ async function selectAppConfigAndUserData(subscriber_id,app_id){
 }
 
 async function selectFromMLI(){
-    return new Promise((res,rej)=>{
+    const sql = await new Promise((res,rej)=>{
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
                     mli.message_status_id = 0 
                     LIMIT 499`,(err,row)=>{
                         if(err) throw err;
-                        if (row.length === 0)
-                        {
-                         noData(row.length) ;
-                        }
-                        else
-                        {
+
                             console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
                             res(row);
-                        }
+
         })
     });
-    //var r = await Promise.all(sql);
+    return await Promise.resolve(sql);
 
 
 }
