@@ -725,17 +725,17 @@ function isLast(v3messages,key)
 {
     if (Object.is(v3messages.length -1,key)) {
         let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-        console.log('-------------------------[Calling The EW AGAIN..]-------------------------------------------');
-        console.log('                      http://'+ip.address()+':8080/api/expandWorker/v33/                    ');
-        console.log('--------------------------------------------------------------------------------------------');
+        console.log('-------------------------[Calling The EW AGAIN..]------------------------------------------');
+        console.info('                      http://'+ip.address()+':8080/api/expandWorker/v33/         ');
+        console.log('-------------------------------------------------------------------------------------------');
     }
 }
- async function  noData(length)
-    {
-            await new Promise(resolve => setTimeout(resolve, 1100));
-          console.log('-------------------------[ ['+length+'] messages found.. Calling EW again..]------------------------------------------');
-         await axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-
+ async function  noData(res) {
+     if (res.length === 0) {
+         await new Promise(resolve => setTimeout(resolve, 1100));
+        console.log('-------------------------[ [' + res.length + '] messages found.. Calling EW again..]------------');
+            await axios.post('http://' + ip.address() + ':8080' + '/api/expandWorker/v33/');
+ }
 }
 
 
