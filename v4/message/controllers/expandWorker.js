@@ -717,12 +717,9 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
 }
 
 let getDateTime = () =>{
-    var today = new Date();
-    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-    var dateTime = date+' '+time;
-    return dateTime
+    return new Date().toLocaleString('en-US', {
+        timeZone: 'America/Sao_Paulo'
+    })
 };
 function isLast(v3messages,key)
 {
