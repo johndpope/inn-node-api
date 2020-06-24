@@ -371,13 +371,13 @@ router.post('/v33',async(req,res,next)=>{
             'Content-Type': 'application/json'
         };
         let v3messages = await selectFromMLI();
-        console.log("["+getDateTime()+"] --- Succesfully selected ["+v3messages.length+"] messages from Message_log_insert table ---");
+
 
         var updated_ids = [];
         var cms_data={};
         var l = [];
 
-        noData(v3messages);
+
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
             //await updateMLISentAt(message.notification_id);
@@ -649,11 +649,17 @@ async function selectFromMLI(){
                     mli.message_status_id = 0 
                     LIMIT 499`,(err,row)=>{
                         if(err) throw err;
-                        res(row);
+                        if (row.length === 0)
+                        {
+                         noData(row.length) ;
+                        }
+                        else
+                        {
+                            console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
+                            res(row);
+                        }
         })
-    }).then(response => {
-                            console.log("Messages successfully selected from message log insert"+ response);}
-                     );
+    });
     //var r = await Promise.all(sql);
 
 
@@ -732,13 +738,11 @@ function isLast(v3messages,key)
         console.log('--------------------------------------------------------------------------------------------');
     }
 }
- async function  noData(array)
-{
-    if (array.length === 0) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        console.log('-------------------------[No messages found.. Calling EW again..]------------------------------------------');
-        await  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-    }
+  function  noData(length)
+    {
+          console.log('-------------------------[ ['+length+'] messages found.. Calling EW again..]------------------------------------------');
+          axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
+
 }
 
 
