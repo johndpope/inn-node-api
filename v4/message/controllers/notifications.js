@@ -651,7 +651,7 @@ let send2ApnsDev  = async (req, res, apns_topic) => {
                     title: newTitle,
                     body: newBody
                 },
-                "mutable-content":true,
+                "mutable-content":1,
                 sound: "default",
                 badge: 1,
                 category: "br.com.inngage.Custom-Notification-Interface.notification",
@@ -824,7 +824,7 @@ let send2ApnsProd = async (req,res,apns_topic) => {
                     title: newTitle,
                     body: newBody
                 },
-                "mutable-content":true,
+                "mutable-content":1,
                 sound: "default",
                 badge: 1,
                 category: "br.com.inngage.Custom-Notification-Interface.notification",
