@@ -738,10 +738,11 @@ function isLast(v3messages,key)
         console.log('--------------------------------------------------------------------------------------------');
     }
 }
-  function  noData(length)
+ async function  noData(length)
     {
+            await new Promise(resolve => setTimeout(resolve, 1100));
           console.log('-------------------------[ ['+length+'] messages found.. Calling EW again..]------------------------------------------');
-          axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
+         await axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
 
 }
 
