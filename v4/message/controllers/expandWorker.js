@@ -7,7 +7,7 @@ const ip = require('ip');
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
     'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
-    'http://'+ip.address()+':8080'+'/api/message/'
+    'http://'+ip.address()+':8080/api/message/'
 ];
 
 router.post('/v1',(req,res0,next)=>{
@@ -376,14 +376,17 @@ router.post('/v33',async(req,res,next)=>{
         axios.defaults.headers = {
             'Content-Type': 'application/json'
         };
-        var v3messages = await selectFromMLI();
-        console.log("["+getDateTime()+"] --- Succesfully selected messages from Message_log_insert table ---");
+        let v3messages = await selectFromMLI();
+
+
         var updated_ids = [];
         var cms_data={};
         var l = [];
+
+        noData(v3messages);
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
-            await updateMLISentAt(message.notification_id);
+            //await updateMLISentAt(message.notification_id);
             l.push(message.notification_id);
         });
 
@@ -480,7 +483,7 @@ router.post('/v33',async(req,res,next)=>{
                     console.log(er);
                 });
             }
-                // isLast(v3messages,message,key);
+                isLast(v3messages,key);
             });
 
         console.log("ending connection...");
@@ -534,8 +537,8 @@ async function updateStatus0TO9(not_id){
         })
     });
     console.log("message_log_insert "+not_id+" updated from 0 to 9");
-    var r = await Promise.resolve(sql);
-    return r;
+    return await Promise.resolve(sql);
+
 }
 
 
@@ -553,7 +556,7 @@ async function updateStatus3TO4(CM_id){
 
 async function updateMLISentAt(notification_id){
     const sql = await new Promise((res,rej)=>{
-        con.query("UPDATE message_log_insert set created_in = NOW() where id = ?;",notification_id ,(err,row)=>{
+        con.query("CALL update_mli_sent_at (?);",notification_id ,(err,row)=>{
             if(err) throw err;
             res(JSON.parse(JSON.stringify(row)));
         })
@@ -673,16 +676,18 @@ async function selectFromMLI(){
         con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
-                    mli.message_status_id = 0 AND
-                    cm.silent = 1
+                    mli.message_status_id = 0 
                     LIMIT 499`,(err,row)=>{
                         if(err) throw err;
-                        res(row);
+
+                            console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
+                            res(row);
+
         })
     });
-    var r = await Promise.all(sql);
-    console.log("Messages successfully selected from message log insert");
-    return r;
+    return await Promise.resolve(sql);
+
+
 }
 
 function buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,app_config,not_data,user_data,custom_fields,events,per_flag,is_prod,phone){
@@ -742,12 +747,9 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
 }
 
 let getDateTime = () =>{
-    var today = new Date();
-    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-    var dateTime = date+' '+time;
-    return dateTime
+    return new Date().toLocaleString('en-US', {
+        timeZone: 'America/Sao_Paulo'
+    })
 };
 
 async function getControlMessageChannels(cm_id,app_id){
@@ -830,13 +832,22 @@ async function getSubPhone(sub_id, app_id){
 }
 
 
-function isLast(v3messages,message,key)
+function isLast(v3messages,key)
 {
     if (Object.is(v3messages.length -1,key)) {
         let recall  =  axios.post('http://'+ip.address()+':8080'+'/api/expandWorker/v33/');
-        console.log('--------------------------------[Calling The EW AGAIN ..'+recall+']--------------------------------------');
-        console.log('              http://'+ip.address()+':8080'+'/api/expandWorker/v33/                         ');
-        console.log('--------------------------------------------------------------------------------------------');
+        console.log('-------------------------[Calling The EW AGAIN..]------------------------------------------');
+        console.info('                      http://'+ip.address()+':8080/api/expandWorker/v33/         ');
+        console.log('-------------------------------------------------------------------------------------------');
     }
 }
+ async function  noData(res) {
+     if (res.length === 0) {
+         await new Promise(resolve => setTimeout(resolve, 1100));
+        console.log('-------------------------[ [' + res.length + '] messages found.. Calling EW again..]------------');
+            await axios.post('http://' + ip.address() + ':8080' + '/api/expandWorker/v33/');
+ }
+}
+
+
 module.exports = router;
