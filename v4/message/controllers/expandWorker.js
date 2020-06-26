@@ -471,7 +471,7 @@ router.post('/v33',async(req,res,next)=>{
                 }
                 console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
                 const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                
+
                 axios.post(endpoint ,
                 {sendPushRequest}
                 )
@@ -753,67 +753,46 @@ let getDateTime = () =>{
 };
 
 async function getControlMessageChannels(cm_id,app_id){
-    var c = {};
-    var ids = await getChannelProviderIds(cm_id);
-    // console.log("ids")
-    // console.log(ids)
-    var channel_data = [];
-    channel_data = await ids.map(async obj  =>{
-        return await getChannelInfo(obj.channel_provider_id,app_id);
-    })
-    
-    const response = await Promise.all(channel_data);
-    // console.log("response")
-    // console.log(response)
 
-    for(i=0;i<response.length;i++){
-        var x = await getChannelProviderInfo(ids[i].channel_provider_id);
-        // console.log(x)
-        if(x.channel_id == 1) continue; // ignore push notification channel
-        // console.log("channel_provider_id = "+ids[i].channel_provider_id);
-        // console.log(x);
-        var custom_per_flag = setPerFlagOptmized(ids[i].custom_title,ids[i].custom_body);
-        c[x.name] = {channel_name:x.name,channel_id:x.channel_id,url:x.endpoint,per_flag:JSON.stringify(custom_per_flag),custom_title:ids[i].custom_title,custom_body:ids[i].custom_body,provider_data:response[i]};
-    }
-    // console.log("c")
-    // console.log(c)
-    return c;
-}
-
-async function getChannelInfo(channel_provider_id,app_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT acc.user,acc.password,acc.key,acc.certificate,acc.package_name,acc.class_name,acc.apns_topic,acc.channel_provider_id as channel_provider_id 
-        FROM app_channel_config acc
-        WHERE acc.app_id = ${app_id}
-        and acc.channel_provider_id = ${channel_provider_id};`,(err,row)=>{
-            if(err) throw err;
-            res(JSON.parse(JSON.stringify(row)));
-        })
+        con.query(`SELECT cmc.custom_title,cmc.custom_body,c.id,c.name,cp.endpoint,cp.id AS channel_provider_id,cp.provider_name,acc.user,acc.password,acc.key,acc.certificate,acc.package_name,acc.class_name,acc.apns_topic 
+            FROM app_channel_config acc, channel_provider cp, channel c, control_message_channel cmc
+            WHERE acc.app_id = ${app_id}
+            AND cmc.channel_provider_id = cp.id
+            AND acc.channel_provider_id = cp.id
+            AND c.id = cp.channel_id
+            AND cmc.control_message_id = ${cm_id};`,(err,row)=>{
+                if(err) throw err;
+                res(JSON.parse(JSON.stringify(row)))
+            })
     });
+
     var ans = await Promise.resolve(sql);
-    return sql[0];
-}
-
-async function getChannelProviderIds(cm_id){
-    const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT channel_provider_id,custom_title,custom_body FROM control_message_channel WHERE control_message_id = ${cm_id};`,(err,row)=>{
-            if(err) throw err;
-            res(JSON.parse(JSON.stringify(row)));
-        })
-    });
-    var ans = Promise.resolve(sql);
-    return ans;
-}
-
-async function getChannelProviderInfo(channel_provider_id){
-    const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT c.name,cp.channel_id as channel_id,cp.endpoint,cp.provider_name FROM channel_provider cp JOIN channel c on c.id = cp.channel_id WHERE cp.id = ${channel_provider_id};`,(err,row)=>{
-            if(err) throw err;
-            res(JSON.parse(JSON.stringify(row)));
-        })
-    });
-    var ans = Promise.resolve(sql);
-    return sql[0];
+    var c= {};
+    
+    ans.forEach(channel =>{
+        if(channel.id == 1)return;
+        const pf = setPerFlagOptmized(channel.custom_title,channel.custom_body);
+        c[channel.name] = {
+            channel_id : channel.id,
+            url:channel.endpoint,
+            per_flag: JSON.stringify(pf),
+            custom_title: channel.custom_title,
+            custom_body: channel.custom_body,
+            provider_data:{
+                user:channel.user,
+                password: channel.password,
+                key: channel.key,
+                certificate: channel.certificate,
+                package_name: channel.package_name,
+                class_name: channel.class_name,
+                apns_topic: channel.apns_topic,
+                channel_provider_id: channel.channel_provider_id
+            }
+            
+        }
+    })
+    return c;
 }
 
 async function getSubPhone(sub_id, app_id){
