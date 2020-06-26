@@ -1207,8 +1207,14 @@ let handleWhatsapp = (channel,phone) =>{
         group: "Whatsapp Oficial",
         channel: "WHATSAPP",
     };
-    if(channel.provider_data.channel_provider_id == 8){
-        json["additionalInfo"] = "{\"parameters\": [\"Fulano\", \"123\"],\"elementName\": \"retorno_chamado\",\"namespace\": \"7804236a_685c_918d_6b53_824c5ae05a68\"}" 
+    if(channel.provider_data.channel_provider_id === 8)
+    {
+        json["additionalInfo"] = {
+            parameters: ["Fulano", "123"],
+            elementName: "retorno_chamado",
+            namespace: "7804236a_685c_918d_6b53_824c5ae05a68"
+        }
+
     }
     axios.defaults.headers = {
         'Authorization':'6X8PNI3B6CMBV8IPCE7LY5QLHHYM6AOUZZ5WTKSJHJCOZYS9RK2Z7PIKY4JD',
@@ -1229,10 +1235,11 @@ let handleWhatsapp = (channel,phone) =>{
 function handleSMS(channel,phone){
     const {user, password} = channel.provider_data;
     var apiUrl = channel.url;
-    if(channel.provider_data.channel_provider_id == 9)apiUrl = apiUrl+"?msisdn=55"+phone+'&sms_text='+channel.custom_body+'&user='+user+"&passwd="+password+"&tipo=shortOne";
+    if(channel.provider_data.channel_provider_id === 9)
+        apiUrl = apiUrl+"?msisdn=55"+phone+'&sms_text='+channel.custom_body+'&user='+user+"&passwd="+password+"&tipo=shortOne";
     axios.defaults.headers = {
         'Content-Type': 'application/json',
-    }
+    };
     
     axios.post(apiUrl).
     then((resp)=>{
