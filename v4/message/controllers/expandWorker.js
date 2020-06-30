@@ -481,14 +481,13 @@ async function getCMData(v3m){
             if(l.includes(cm.control_message_id))return ;
             else l.push(cm.control_message_id);
 
-            const not_data = await selectNotificationData(cm.control_message_id);
-            const per_flag = setPerFlagOptmized(not_data.title,not_data.body);
+            const not_pf = await selectNotificationData(cm.control_message_id);
             const is_prod = await getIsProd(cm.app_id);
             const channelsData = await getControlMessageChannels(cm.control_message_id,cm.app_id);
             return {
                 control_message_id:cm.control_message_id,
-                not_data,
-                per_flag,
+                not_data:not_pf.not_data,
+                per_flag:not_pf.not_pf,
                 is_prod,
                 channelsData
             }
@@ -669,8 +668,12 @@ async function selectNotificationData(control_message_id){
         })
     });
     var r = await Promise.all(sql);
+    const pf = setPerFlagOptmized(r[0].title,r[0].body); 
     console.log("Notification data successfully selected from database");
-    return r[0];
+    return {
+            not_data:r[0],
+            pf
+        };
 }
 
 async function selectAppConfigAndUserData(subscriber_id,app_id){
