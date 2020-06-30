@@ -605,7 +605,7 @@ async function setPerFlag(control_message_id){
 function setPerFlagOptmized(title,body){
     var t = (title.includes("|*") || title.includes("*|") || title.includes("{{") || title.includes("}}"));
     var b = (body.includes("|*") || body.includes("*|") || body.includes("{{") || body.includes("}}"));
-    return (t || b);
+    return (t || b) ? 1:0;
 }
 
 async function selectCustomFields(subscriber_id){
