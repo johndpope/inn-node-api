@@ -389,6 +389,7 @@ router.post('/v33',async(req,res,next)=>{
             //await updateMLISentAt(message.notification_id);
             l.push(message.notification_id);
         });
+        cms_data = await getCMData(v3messages);
 
         v3messages.forEach(
             async (message,key) => {
@@ -401,36 +402,14 @@ router.post('/v33',async(req,res,next)=>{
                 var cmUp = await updateStatus3TO4(control_message_id);
                 updated_ids.push(control_message_id);
             }
-            var appConfigAndUserData;
-            var not_data;
-            var per_flag;
-            var is_prod;
-            var channelsData;
+            var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
+            var not_data = cms_data[control_message_id].not_data;
+            var per_flag = cms_data[control_message_id].per_flag;
+            var is_prod = cms_data[control_message_id].is_prod;
+            var channelsData = cms_data[control_message_id].channelsData;
             var custom_fields;
             var events;
             var phone;
-            
-            if(cms_data[control_message_id] == undefined || cms_data[control_message_id] == null){
-                appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
-                not_data = await selectNotificationData(control_message_id);
-                per_flag = setPerFlagOptmized(not_data.title,not_data.body);
-                is_prod = await getIsProd(app_id);
-                channelsData = await getControlMessageChannels(control_message_id,app_id);
-
-                cms_data[control_message_id] = {appConfigAndUserData,
-                               not_data,
-                               per_flag,
-                               is_prod,
-                               channelsData
-                              }
-            }
-            else{
-                appConfigAndUserData = cms_data[control_message_id].appConfigAndUserData;
-                not_data = cms_data[control_message_id].not_data;
-                per_flag = cms_data[control_message_id].per_flag;
-                is_prod = cms_data[control_message_id].is_prod;
-                channelsData = cms_data[control_message_id].channelsData;
-            }
 
             // Set extra information due to channels (phone/custom data)
             var phone_flag=0;
@@ -494,6 +473,43 @@ router.post('/v33',async(req,res,next)=>{
         message:"Success"
     })
 });
+
+async function getCMData(v3m){
+    var l = []
+    const sql = await new Promise((res,rej)=>{
+        const r = v3m.map(async cm =>{
+            if(l.includes(cm.control_message_id))return ;
+            else l.push(cm.control_message_id);
+
+            const not_data = await selectNotificationData(cm.control_message_id);
+            const per_flag = setPerFlagOptmized(not_data.title,not_data.body);
+            const is_prod = await getIsProd(cm.app_id);
+            const channelsData = await getControlMessageChannels(cm.control_message_id,cm.app_id);
+            return {
+                control_message_id:cm.control_message_id,
+                not_data,
+                per_flag,
+                is_prod,
+                channelsData
+            }
+        });
+        res(r);
+    });
+
+    var ans = await Promise.all(sql);
+
+    var c = {};
+    ans.forEach(cm =>{
+        if(cm == undefined)return;
+        c[cm.control_message_id] = {
+            not_data:cm.not_data,
+            per_flag:cm.per_flag,
+            is_prod:cm.is_prod,
+            channelsData:cm.channelsData
+        }
+    })
+    return c;
+}
 
 async function getIsProd(app_id){
     const sql = await new Promise((res,rej)=>{

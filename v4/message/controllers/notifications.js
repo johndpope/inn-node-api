@@ -44,7 +44,7 @@ exports.send = async (req,res,next) =>{
 
      if(isEmpty(silent)) silent="0" ;
 try {
-    sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone);
+    sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,subscriber_id);
     switch (true) {
         case ((silent === "1") && (firebase_ios === "1")) :
             silentPush(req, res);
@@ -83,18 +83,18 @@ try {
 }
 };
 
-function sendChannelsMessages(channels,phone){
+function sendChannelsMessages(channels,phone,not_id,subscriber_id){
     if(channels == null || channels == undefined ) return ;
 
     try{
         Object.values(channels).forEach(channel=> {
             if(channel.channel_id == 2){
                 console.log("SENDING SMS");
-                handleSMS(channel,phone);
+                handleSMS(channel,phone,not_id,subscriber_id);
             }
             if(channel.channel_id == 3){
                 console.log("SENDING WPP");
-                handleWhatsapp(channel,phone)
+                handleWhatsapp(channel,phone,not_id,subscriber_id)
             }
         })
     }catch(e){
@@ -1198,56 +1198,51 @@ let silentPush =(req,res) => {
         });
 };
 
-let handleWhatsapp = (channel,phone) =>{
+let handleWhatsapp = (channel,phone,not_id,subscriber_id) =>{
     const ApiUrl = channel.url;
     console.log("ENVIANDO WHATSAPP")
     const json = {
         phone: "55"+phone,
         message: channel.custom_title+" : "+channel.custom_body,
-        group: "Whatsapp Oficial",
+        group: "Atendimento",
         channel: "WHATSAPP",
     };
-    if(channel.provider_data.channel_provider_id === 8)
-    {
-        json["additionalInfo"] = {
-            parameters: ["Fulano", "123"],
-            elementName: "retorno_chamado",
-            namespace: "7804236a_685c_918d_6b53_824c5ae05a68"
-        }
 
-    }
     axios.defaults.headers = {
         'Authorization':'6X8PNI3B6CMBV8IPCE7LY5QLHHYM6AOUZZ5WTKSJHJCOZYS9RK2Z7PIKY4JD',
         'Content-Type': 'application/json'
     };
 
     axios.post(ApiUrl,json).
-        then((resp)=>{
+        then(async (resp)=>{
             console.log("Successfully sent Whatsapp");
+            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,1,"WPP ENVIADO COM SUCESSO - Provider : "+channel.provider_data.channel_provider_id);
             return resp;
         }).
-        catch((resp)=>{
-            console.log("Error while sending Whatsapp");
+        catch(async (resp)=>{
+            console.log("Error while sending Whatsapp...Details : "+resp);
+            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,"FALHA AO ENVIAR WPP - Provider : "+channel.provider_data.channel_provider_id+"... DETAILS : "+resp);
             return false;
         })
 }
 
-function handleSMS(channel,phone){
+function handleSMS(channel,phone,not_id,subscriber_id){
     const {user, password} = channel.provider_data;
     var apiUrl = channel.url;
-    if(channel.provider_data.channel_provider_id === 9)
-        apiUrl = apiUrl+"?msisdn=55"+phone+'&sms_text='+channel.custom_body+'&user='+user+"&passwd="+password+"&tipo=shortOne";
+    if(channel.provider_data.channel_provider_id == 9)apiUrl = apiUrl+"?msisdn=55"+phone+'&sms_text='+channel.custom_body+'&user='+user+"&passwd="+password+"&tipo=shortOne";
     axios.defaults.headers = {
         'Content-Type': 'application/json',
-    };
+    }
     
     axios.post(apiUrl).
-    then((resp)=>{
+    then(async (resp)=>{
         console.log("Successfully sent SMS");
+        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,1,"SMS ENVIADO COM SUCESSO - Provider : "+channel.provider_data.channel_provider_id);
         return resp;
     }).
-    catch((resp)=>{
-        console.log("Error while sending SMS");
+    catch(async (resp)=>{
+        console.log("Error while sending SMS... Details : "+resp);
+        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,"FALHA AO ENVIAR SMS - Provider : "+channel.provider_data.channel_provider_id+"... DETAILS : "+resp);
         return false;
     })
 }
