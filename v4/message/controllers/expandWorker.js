@@ -369,106 +369,109 @@ router.post('/v3',(req,ress,next)=>{
 
 
 router.post('/v33',async(req,res,next)=>{
-
-    con.getConnection(async function(err,connection){
-        if(err) throw err;
-        console.log("["+getDateTime()+"] --- Started V33 ---");
-        console.log("["+getDateTime()+"] --- Successfully connected to Database!!");
-        axios.defaults.headers = {
-            'Content-Type': 'application/json'
-        };
-        let v3messages = await selectFromMLI();
-
-
-        var updated_ids = [];
-        var cms_data={};
-        var l = [];
-
-         noData(v3messages);
-        v3messages.forEach(async message =>{
-            await updateStatus0TO9(message.notification_id);
-            //await updateMLISentAt(message.notification_id);
-            l.push(message.notification_id);
-        });
-        cms_data = await getCMData(v3messages);
-
-        v3messages.forEach(
-            async (message,key) => {
-            const app_id= message.app_id;
-            const control_message_id = message.control_message_id;
-            const notification_id = message.notification_id;
-            const subscriber_id = message.subscriber_id;
-
-            if(!updated_ids.includes(control_message_id)){
-                var cmUp = await updateStatus3TO4(control_message_id);
-                updated_ids.push(control_message_id);
-            }
-            var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
-            var not_data = cms_data[control_message_id].not_data;
-            var per_flag = cms_data[control_message_id].per_flag;
-            var is_prod = cms_data[control_message_id].is_prod;
-            var channelsData = cms_data[control_message_id].channelsData;
-            var custom_fields;
-            var events;
-            var phone;
-
-            // Set extra information due to channels (phone/custom data)
-            var phone_flag=0;
-            var values = Object.values(channelsData);
-            for(i=0;i<values.length;++i){
-                if((values[i].channel_id == 2 || values[i].channel_id == 3) && phone_flag == 0){
-                    phone = await getSubPhone(subscriber_id,app_id);
-                    phone_flag=1;
-                }
-            }
-
-            if(per_flag == 1){
-                custom_fields = await selectCustomFields(subscriber_id);
-                events = await selectEvents(subscriber_id,app_id);
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
-                if(values.length>0){
-                    sendPushRequest["channels"] = channelsData;
-                }
-                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                axios.post(endpoint ,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending to Dispatcher...");
-                    console.log(er.SendPushResponse);
-                });
-
-            }
-            else
-                {
-                let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
-                if(values.length>0){
-                    sendPushRequest["channels"] = channelsData;
-                }
-                console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
-                const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-
-                axios.post(endpoint ,
-                {sendPushRequest}
-                )
-                .then(async response => {
-                    console.log(response.data);
-                })
-                .catch( er => {
-                    console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
-                    console.log(er);
-                });
-            }
-                isLast(v3messages,key);
+    try{
+        con.getConnection(async function(err,connection){
+            if(err) throw err;
+            console.log("["+getDateTime()+"] --- Started V33 ---");
+            console.log("["+getDateTime()+"] --- Successfully connected to Database!!");
+            axios.defaults.headers = {
+                'Content-Type': 'application/json'
+            };
+            let v3messages = await selectFromMLI();
+    
+    
+            var updated_ids = [];
+            var cms_data={};
+            var l = [];
+    
+             noData(v3messages);
+            v3messages.forEach(async message =>{
+                await updateStatus0TO9(message.notification_id);
+                //await updateMLISentAt(message.notification_id);
+                l.push(message.notification_id);
             });
-
-        console.log("ending connection...");
-        connection.release();
-    });
+            cms_data = await getCMData(v3messages);
+    
+            v3messages.forEach(
+                async (message,key) => {
+                const app_id= message.app_id;
+                const control_message_id = message.control_message_id;
+                const notification_id = message.notification_id;
+                const subscriber_id = message.subscriber_id;
+    
+                if(!updated_ids.includes(control_message_id)){
+                    var cmUp = await updateStatus3TO4(control_message_id);
+                    updated_ids.push(control_message_id);
+                }
+                var appConfigAndUserData = await selectAppConfigAndUserData(subscriber_id,app_id);
+                var not_data = cms_data[control_message_id].not_data;
+                var per_flag = cms_data[control_message_id].per_flag;
+                var is_prod = cms_data[control_message_id].is_prod;
+                var channelsData = cms_data[control_message_id].channelsData;
+                var custom_fields;
+                var events;
+                var phone;
+    
+                // Set extra information due to channels (phone/custom data)
+                var phone_flag=0;
+                var values = Object.values(channelsData);
+                for(i=0;i<values.length;++i){
+                    if((values[i].channel_id == 2 || values[i].channel_id == 3) && phone_flag == 0){
+                        phone = await getSubPhone(subscriber_id,app_id);
+                        phone_flag=1;
+                    }
+                }
+    
+                if(per_flag == 1){
+                    custom_fields = await selectCustomFields(subscriber_id);
+                    events = await selectEvents(subscriber_id,app_id);
+                    let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,custom_fields,events,per_flag,is_prod,phone);
+                    if(values.length>0){
+                        sendPushRequest["channels"] = channelsData;
+                    }
+                    console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
+                    const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                    axios.post(endpoint ,
+                    {sendPushRequest}
+                    )
+                    .then(async response => {
+                        console.log(response.data);
+                    })
+                    .catch( er => {
+                        console.log("Error on sending to Dispatcher...");
+                        console.log(er.SendPushResponse);
+                    });
+    
+                }
+                else
+                    {
+                    let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+                    if(values.length>0){
+                        sendPushRequest["channels"] = channelsData;
+                    }
+                    console.log("["+getDateTime()+"] --- Sending message ["+notification_id+"] to dispatcher....");
+                    const endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+    
+                    axios.post(endpoint ,
+                    {sendPushRequest}
+                    )
+                    .then(async response => {
+                        console.log(response.data);
+                    })
+                    .catch( er => {
+                        console.log("Error on sending not_id = "+notification_id+" to Dispatcher...");
+                        console.log(er);
+                    });
+                }
+                    isLast(v3messages,key);
+                });
+    
+            console.log("ending connection...");
+            connection.release();
+        });
+    }catch(e){
+        console.log("Error while executing v33 route function... Details : "+e);
+    }
 
     return res.status(200).json({
         message:"Success"
@@ -705,6 +708,10 @@ async function selectFromMLI(){
                                 res(r)
                             }else{
                                 console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
+                                if(row.length == 1){
+                                    console.log("There is only one message waiting to be sent, here it is..");
+                                    console.log(row);
+                                }
                                 res(row);
                             }
         })
