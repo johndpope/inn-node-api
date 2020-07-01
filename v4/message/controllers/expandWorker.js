@@ -35,7 +35,7 @@ router.post('/v1',(req,res0,next)=>{
             user_data = res[0];
             console.log("app_config and user_data successfully selected from database ");
 
-            con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent
+            con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent,channel
             FROM control_message
             WHERE id_control_message = ${control_message_id}`, (err2,res2)=>{
                 if(err2) throw err2;
@@ -106,7 +106,8 @@ router.post('/v1',(req,res0,next)=>{
                                                 },
                                                 channel: {
                                                     provider_id: "",
-                                                    end_point: ""
+                                                    end_point: "",
+                                                    type:not_data.channel
                                                 },
                                                 app: {
                                                     app_id: app_id,
@@ -660,7 +661,7 @@ async function selectEvents(subscriber_id,app_id){
 
 async function selectNotificationData(control_message_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent
+        con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent,channel
                     FROM control_message
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
@@ -726,7 +727,8 @@ function buildPushResponse(app_id,control_message_id,notification_id,subscriber_
         },
         channel: {
             provider_id: "",
-            end_point: ""
+            end_point: "",
+            type:not_data.channel
         },
         app: {
             app_id: app_id,

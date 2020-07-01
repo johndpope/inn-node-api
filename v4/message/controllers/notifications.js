@@ -44,7 +44,9 @@ exports.send = async (req,res,next) =>{
 
      if(isEmpty(silent)) silent="0" ;
 try {
-
+    if(req.body.sendPushRequest.channel.type == 1){
+        sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,subscriber_id,"SENT TYPE 3 - ")
+    }
     switch (true) {
         case ((silent === "1") && (firebase_ios === "1")) :
             silentPush(req, res);
@@ -1122,9 +1124,12 @@ let silentPush =(req,res) => {
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details='[Silent Push Failed]: '+response.data.results[0]["error"];
-                sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,p_subscriber_id,p_status_details);
-               // const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                //console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
+                if(req.body.sendPushRequest.channel.type == 2){
+                    sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,p_subscriber_id,p_status_details);
+                } else{
+                    const sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                    console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
+                }
                 res.status(200).json({
                     SendPushResponse:{
                         NotID:p_id,
