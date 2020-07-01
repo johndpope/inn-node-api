@@ -665,16 +665,17 @@ async function selectNotificationData(control_message_id){
                     FROM control_message
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
-                        res(row);
+                        console.log(row)
+                        const n = row[0];
+                        const pf = setPerFlagOptmized(n.title,n.body); 
+                        res({not_data:n,
+                             pf
+                        });
         })
     });
-    var r = await Promise.all(sql);
-    const pf = setPerFlagOptmized(r[0].title,r[0].body); 
+    var r = await Promise.resolve(sql);
     console.log("Notification data successfully selected from database");
-    return {
-            not_data:r[0],
-            pf
-        };
+    return r;
 }
 
 async function selectAppConfigAndUserData(subscriber_id,app_id){
