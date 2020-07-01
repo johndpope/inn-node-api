@@ -384,7 +384,7 @@ router.post('/v33',async(req,res,next)=>{
         var cms_data={};
         var l = [];
 
-        await noData(v3messages);
+         noData(v3messages);
         v3messages.forEach(async message =>{
             await updateStatus0TO9(message.notification_id);
             //await updateMLISentAt(message.notification_id);
