@@ -697,17 +697,19 @@ async function selectFromMLI(){
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
                     mli.message_status_id = 0 
-                    LIMIT 499`,(err,row)=>{
+                    LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
-
-                            console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
-                            res(row);
-
+                            if(row.length == 0){
+                                console.log("No messages available yet... Selecting from MLI again.");
+                                const r = await selectFromMLI();
+                                res(r)
+                            }else{
+                                console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
+                                res(row);
+                            }
         })
     });
     return await Promise.resolve(sql);
-
-
 }
 
 function buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,app_config,not_data,user_data,custom_fields,events,per_flag,is_prod,phone){
