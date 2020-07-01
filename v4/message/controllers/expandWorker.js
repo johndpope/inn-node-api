@@ -703,7 +703,7 @@ async function selectFromMLI(){
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length <= 1){
-                                console.log("No messages available yet... Selecting from MLI again.");
+                                console.log("["+row.length+"]  messages available yet... Selecting from MLI again.");
                                 const r = await selectFromMLI();
                                 res(r)
                             }else{
