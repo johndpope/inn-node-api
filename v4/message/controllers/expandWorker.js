@@ -702,16 +702,12 @@ async function selectFromMLI(){
                     mli.message_status_id = 0 
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
-                            if(row.length == 0){
+                            if(row.length <= 1){
                                 console.log("No messages available yet... Selecting from MLI again.");
                                 const r = await selectFromMLI();
                                 res(r)
                             }else{
                                 console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
-                                if(row.length == 1){
-                                    console.log("There is only one message waiting to be sent, here it is..");
-                                    console.log(row);
-                                }
                                 res(row);
                             }
         })
