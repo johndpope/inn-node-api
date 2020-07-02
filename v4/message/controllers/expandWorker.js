@@ -666,28 +666,22 @@ async function selectEvents(subscriber_id,app_id){
 }
 
 async function selectNotificationData(control_message_id){
-    let n=null;
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent,channel
                     FROM control_message
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
-                         n = row[0];
-                        res({not_data:n})
+            let pf = setPerFlagOptmized(n.title,n.body);
+            let n=row[0];
+            res({not_data:n,pf})
         })
-    }).then(async (flagResponse)=>{
-
-        console.log("Notification data successfully selected from database");
-        console.log("Checking the flag : "+flagResponse);
-        let pf = setPerFlagOptmized(n.title,n.body);
-           return {not_data:n,pf};
-
-
     }).catch((error)=>{
         console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+error);
     });
 
-
+    let r = await Promise.resolve(sql);
+    console.log("Notification data successfully selected from database");
+    return r;
 
 }
 
