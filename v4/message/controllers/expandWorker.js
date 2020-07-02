@@ -6,12 +6,8 @@ const ip = require('ip');
 
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
     'http://'+ip.address()+':8080/api/message/',
-    'https://inn-api-pusher.herokuapp.com/api/message/',
-    'https://inn-api-pusher2.herokuapp.com/api/message/',
-    'https://inn-api-pusher3.herokuapp.com/api/message/',
-    'http://send.inngage.com.br/api/message/'
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
 ];
 
 router.post('/v1',(req,res0,next)=>{
