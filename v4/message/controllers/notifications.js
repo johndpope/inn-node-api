@@ -1128,7 +1128,6 @@ let silentPush =(req,res) => {
                     sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,p_subscriber_id,p_status_details,p_control_message_id);
                 } else{
                     const sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
-                    console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 }
                 res.status(200).json({
                     SendPushResponse:{
