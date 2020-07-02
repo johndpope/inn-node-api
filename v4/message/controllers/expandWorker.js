@@ -444,7 +444,7 @@ router.post('/v33',async(req,res,next)=>{
                 }
                 else
                     {
-                    let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod);
+                    let sendPushRequest = buildPushResponse(app_id,control_message_id,notification_id,subscriber_id,appConfigAndUserData,not_data,appConfigAndUserData,{},{},per_flag,is_prod,phone);
                     if(values.length>0){
                         sendPushRequest["channels"] = channelsData;
                     }
