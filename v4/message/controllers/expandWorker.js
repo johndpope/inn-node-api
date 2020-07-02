@@ -722,7 +722,8 @@ async function selectFromMLI(){
                                 console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
                                 res(row);
                             }
-        })
+        });
+        con.end();
     });
     return await Promise.resolve(sql);
 }
