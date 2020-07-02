@@ -673,23 +673,22 @@ async function selectNotificationData(control_message_id){
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
                          n = row[0];
-        }).then(async (flagResponse)=>{
 
-
-            console.log("Checking the flag : "+flagResponse);
-            let pf = setPerFlagOptmized(n.title,n.body);
-
-            res({not_data:n,
-                                pf
-                        });
-
-        }).catch((error)=>{
-            console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+error);
         })
+    }).then(async (flagResponse)=>{
+
+        console.log("Notification data successfully selected from database");
+        console.log("Checking the flag : "+flagResponse);
+        let pf = setPerFlagOptmized(n.title,n.body);
+           return {not_data:n,pf};
+
+
+    }).catch((error)=>{
+        console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+error);
     });
-    var r = await Promise.resolve(sql);
-    console.log("Notification data successfully selected from database");
-    return r;
+
+
+
 }
 
 async function selectAppConfigAndUserData(subscriber_id,app_id){
