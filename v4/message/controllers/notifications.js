@@ -45,7 +45,7 @@ exports.send = async (req,res,next) =>{
      if(isEmpty(silent)) silent="0" ;
 try {
     if(req.body.sendPushRequest.channel.type == 1){
-        sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,subscriber_id,"SENT TYPE 3 - ")
+        sendChannelsMessages(req.body.sendPushRequest.channels,req.body.sendPushRequest.subscriber.phone,p_id,subscriber_id,"SENT TYPE 1 - ",control_message_id)
     }
     switch (true) {
         case ((silent === "1") && (firebase_ios === "1")) :
