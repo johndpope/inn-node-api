@@ -663,10 +663,9 @@ async function selectEvents(subscriber_id,app_id){
 
 async function selectNotificationData(control_message_id){
     const sql = await new Promise((res,rej)=>{
-        con.query(`SELECT title, body ,url_push, img_push, url_type, status,silent,channel
-                    FROM control_message
-                    WHERE id_control_message = ${control_message_id}`,(err,row)=>{
-                        if(err) throw err;
+        let query = "SELECT title, body ,url_push, img_push, url_type, status,silent,channel FROM control_message WHERE id_control_message =?";
+        con.query(query, [control_message_id],(err,row)=>{
+            if(err) throw err;
             let n =row[0];
             let pf=null;
             try{
@@ -677,7 +676,6 @@ async function selectNotificationData(control_message_id){
 
                 console.log("[Row : "+row[0]+"]");
                 console.log("[n : "+n+"]");
-                console.log("[Title : "+n.title+"] [Body : "+n.body+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
             }
 
@@ -715,7 +713,7 @@ async function selectFromMLI(){
                     mli.message_status_id = 0 
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
-                            if(row.length <= 1){
+                            if(row.length === 0 ){
                                 console.log("["+row.length+"]  messages available yet... Selecting from MLI again after 10 seconds.");
                                 await new Promise(resolve => setTimeout(resolve, 10000));
                                 const r = await selectFromMLI();
