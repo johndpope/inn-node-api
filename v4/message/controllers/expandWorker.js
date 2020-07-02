@@ -388,7 +388,6 @@ router.post('/v33',async(req,res,next)=>{
             var cms_data={};
             var l = [];
     
-             noData(v3messages);
             v3messages.forEach(async message =>{
                 await updateStatus0TO9(message.notification_id);
                 //await updateMLISentAt(message.notification_id);
@@ -707,7 +706,8 @@ async function selectFromMLI(){
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length <= 1){
-                                console.log("["+row.length+"]  messages available yet... Selecting from MLI again.");
+                                console.log("["+row.length+"]  messages available yet... Selecting from MLI again after 10 seconds.");
+                                await new Promise(resolve => setTimeout(resolve, 10000));
                                 const r = await selectFromMLI();
                                 res(r)
                             }else{
