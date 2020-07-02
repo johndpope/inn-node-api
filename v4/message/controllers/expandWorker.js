@@ -664,7 +664,7 @@ async function selectEvents(subscriber_id,app_id){
 async function selectNotificationData(control_message_id){
     let pf=null;
     let n=null;
-   return await new Promise(async (res,rej)=>{
+   return await new Promise( (res,rej)=>{
         const query = "SELECT title, body ,url_push, img_push, url_type, status,silent,channel FROM control_message WHERE id_control_message =?";
           con.query(query, [control_message_id], async (err,row)=>{
             if(err) rej(err);
