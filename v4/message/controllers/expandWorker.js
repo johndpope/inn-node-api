@@ -604,7 +604,7 @@ async function setPerFlag(control_message_id){
     }
 }
 
-function setPerFlagOptmized(title,body){
+ function setPerFlagOptmized(title,body){
     var t = (title.includes("|*") || title.includes("*|") || title.includes("{{") || title.includes("}}"));
     var b = (body.includes("|*") || body.includes("*|") || body.includes("{{") || body.includes("}}"));
     return (t || b) ? 1:0;
@@ -668,11 +668,23 @@ async function selectNotificationData(control_message_id){
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
             let n =row[0];
-            let pf = setPerFlagOptmized(n.title,n.body);
-            res({not_data:n,pf})
+            let pf=null;
+            try{
+                pf =  setPerFlagOptmized(n.title,n.body);
+                res({not_data:n,pf})
+            }
+            catch (err) {
+
+                console.log("[Row : "+row[0]+"]");
+                console.log("[n : "+n+"]");
+                console.log("[Title : "+n.title+"] [Body : "+n.body+"]");
+                console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
+            }
+
+
         })
     }).catch((error)=>{
-        console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+error);
+        console.log("ERROR IN SELECTING Notification DATA : "+error);
     });
 
     let r = await Promise.resolve(sql);
