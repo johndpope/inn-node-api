@@ -1222,7 +1222,7 @@ let handleWhatsapp = (channel,phone,not_id,subscriber_id,p_status_details,p_cont
     axios.post(ApiUrl,json).
         then(async (resp)=>{
             console.log("Successfully sent Whatsapp");
-            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,1,p_status_details+"[WHATSAPP SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][URL]["+ApiUrl+"]",p_control_message_id);
+            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[WHATSAPP SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][URL]["+ApiUrl+"]",p_control_message_id);
             return resp;
         }).
         catch(async (resp)=>{
@@ -1235,11 +1235,11 @@ let handleWhatsapp = (channel,phone,not_id,subscriber_id,p_status_details,p_cont
 function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control_message_id){
     const {user, password} = channel.provider_data;
     var apiUrl = channel.url;
-    if(channel.provider_data.channel_provider_id == 9)apiUrl = apiUrl+"?msisdn=55"+phone+"&sms_text="+channel.custom_body+"&user="+user+"&passwd="+password+"&tipo=shortOne";
+    if(channel.provider_data.channel_provider_id == 9)apiUrl = apiUrl+"?msisdn=+55"+phone+"&sms_text="+channel.custom_body+"&user="+user+"&passwd="+password+"&tipo=shortOne";
     axios.post(apiUrl).
     then(async (resp)=>{
         console.log("Successfully sent SMS");
-        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,1,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"][URL]["+apiUrl+"]",p_control_message_id);
+        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"][URL]["+apiUrl+"]",p_control_message_id);
         return resp;
     }).
     catch(async (resp)=>{
