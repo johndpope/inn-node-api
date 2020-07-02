@@ -662,19 +662,24 @@ async function selectEvents(subscriber_id,app_id){
 }
 
 async function selectNotificationData(control_message_id){
-    const sql = await new Promise((res,rej)=>{
-        let query = "SELECT title, body ,url_push, img_push, url_type, status,silent,channel FROM control_message WHERE id_control_message =?";
-        con.query(query, [control_message_id],(err,row)=>{
-            if(err) throw err;
-            let n =row[0];
-            let pf=null;
+    let pf=null;
+    let n=null;
+   return await new Promise(async (res,rej)=>{
+        const query = "SELECT title, body ,url_push, img_push, url_type, status,silent,channel FROM control_message WHERE id_control_message =?";
+          con.query(query, [control_message_id], async (err,row)=>{
+            if(err) rej(err);
+                 n=row[0];
+
             try{
-                pf =  setPerFlagOptmized(n.title,n.body);
-                res({not_data:n,pf})
+                pf = await  setPerFlagOptmized(n.title,n.body);
+                console.log("Notification data successfully selected from database");
+                 res({not_data:n,pf})
+
             }
             catch (err) {
 
-                console.log("[Row : "+row[0]+"]");
+                console.log("[Row  : "+row+"]");
+                console.log("[Row 0 : "+row[0]+"]");
                 console.log("[n : "+n+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
             }
@@ -685,9 +690,9 @@ async function selectNotificationData(control_message_id){
         console.log("ERROR IN SELECTING Notification DATA : "+error);
     });
 
-    let r = await Promise.resolve(sql);
-    console.log("Notification data successfully selected from database");
-    return r;
+
+
+
 
 }
 
