@@ -673,7 +673,7 @@ async function selectNotificationData(control_message_id){
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
                          n = row[0];
-
+                        res({not_data:n})
         })
     }).then(async (flagResponse)=>{
 
