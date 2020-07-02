@@ -671,8 +671,8 @@ async function selectNotificationData(control_message_id){
                     FROM control_message
                     WHERE id_control_message = ${control_message_id}`,(err,row)=>{
                         if(err) throw err;
+            let n =row[0];
             let pf = setPerFlagOptmized(n.title,n.body);
-            let n=row[0];
             res({not_data:n,pf})
         })
     }).catch((error)=>{
