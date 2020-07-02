@@ -723,7 +723,7 @@ async function selectFromMLI(){
                                 res(row);
                             }
         });
-        con.end();
+
     });
     return await Promise.resolve(sql);
 }
