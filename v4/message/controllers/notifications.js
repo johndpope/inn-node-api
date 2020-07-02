@@ -1243,7 +1243,7 @@ function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control
         return resp;
     }).
     catch(async (resp)=>{
-        console.log("Error while sending SMS... Details : "+resp);
+        console.log("Error while sending SMS... Details : "+resp+"[Details]["+apiUrl+"]");
         const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"]",p_control_message_id);
         return false;
     })
