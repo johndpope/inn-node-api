@@ -685,7 +685,7 @@ async function selectNotificationData(control_message_id){
             }
             catch (err) {
 
-                console.log("[Row 0 : "+row[0].toString()+"]");
+                console.log("[Row 0 : "+row[0]+"]");
                 console.log("[n : "+n+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
             }
