@@ -669,11 +669,11 @@ async function selectNotificationData(control_message_id){
          await con.query(query, [control_message_id],  (err,row)=>{
              if(err) throw err;
              if (!row.length) {
-                 console.log("[Row 0 : "+row[0].toString()+"]");
+                 console.log("[Row 0 : "+row[0]+"]");
                  rej(err);
              }else{
-                 console.log("[Row 0 : "+row[0].toString()+"]");
-                 n=row[0].toString();
+                 console.log("[Row 0 : "+row[0]+"]");
+                 n=row[0]
              }
 
 
