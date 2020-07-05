@@ -1226,7 +1226,7 @@ let handleWhatsapp = (channel,phone,not_id,subscriber_id,p_status_details,p_cont
         }).
         catch(async (resp)=>{
             console.log("Error while sending Whatsapp...Details : "+resp);
-            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[WHATSAPP FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"][URL]["+ApiUrl+"]",p_control_message_id);
+            const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[WHATSAPP FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][URL]["+ApiUrl+"]",p_control_message_id);
             return false;
         })
 }
@@ -1239,12 +1239,12 @@ function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control
     axios.post(apiUrl).
     then(async (resp)=>{
         console.log("Successfully sent SMS");
-        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"]",p_control_message_id);
+        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
         return resp;
     }).
     catch(async (resp)=>{
         console.log("Error while sending SMS... Details : "+resp+"[Details]["+apiUrl+"]");
-        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"][Details]["+resp+"]",p_control_message_id);
+        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
         return false;
     })
 }
