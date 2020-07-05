@@ -669,8 +669,9 @@ async function selectNotificationData(control_message_id){
          await con.query(query, [control_message_id],  (err,row)=>{
              if(err) throw err;
              if (!row.length) {
-                 console.log("[Row 0 : "+row[0]+"]");
-                 rej(err);
+                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
+                 console.log("Calling the Ew Again ");
+                 recall();
              }else{
                  console.log("[Row 0 : "+row[0]+"]");
                  n=row[0]
@@ -688,6 +689,9 @@ async function selectNotificationData(control_message_id){
                 console.log("[Row 0 : "+row[0]+"]");
                 console.log("[n : "+n+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
+                console.log("Calling the Ew Again ");
+                recall();
+
             }
 
 
@@ -871,12 +875,9 @@ async function isLast(v3messages,key)
         console.log('-------------------------------------------------------------------------------------------');
     }
 }
- async function  noData(res) {
-     if (res.length === 0) {
-         await new Promise(resolve => setTimeout(resolve, 10000));
-        console.log('-------------------------[ [' + res.length + '] messages found.. Calling EW again..]------------');
+ async function  recall() {
+        console.log('-------------------------[ Calling EW again..]------------');
             await axios.post('http://' + ip.address() + ':8080' + '/api/expandWorker/v33/');
- }
 }
 
 
