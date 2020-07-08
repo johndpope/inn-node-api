@@ -725,7 +725,8 @@ async function selectFromMLI(){
      await   con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
-                    mli.message_status_id = 0 
+                    mli.message_status_id = 0 AND 
+                    (cm.schedule IS NULL OR cm.schedule <= NOW())
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length === 0 ){
