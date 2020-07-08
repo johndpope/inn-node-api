@@ -670,8 +670,8 @@ async function selectNotificationData(control_message_id){
              if(err) throw err;
              if (!row.length) {
                  console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
-                 console.log("Calling the Ew Again ");
-                 recall();
+                //  console.log("Calling the Ew Again ");
+                //  recall();
              }else{
                  console.log("[Row 0 : "+row[0]+"]");
                  n=row[0]
@@ -689,8 +689,8 @@ async function selectNotificationData(control_message_id){
                 console.log("[Row 0 : "+row[0]+"]");
                 console.log("[n : "+n+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
-                console.log("Calling the Ew Again ");
-                recall();
+                // console.log("Calling the Ew Again ");
+                // recall();
 
             }
 
@@ -729,9 +729,9 @@ async function selectFromMLI(){
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length === 0 ){
-                                console.log("["+row.length+"]  messages available yet... Recaling EW again after 10 seconds.");
-                                await new Promise(resolve => setTimeout(resolve, 10000));
-                                const r = recall();
+                                console.log("["+row.length+"]  messages available yet... ");
+                                // await new Promise(resolve => setTimeout(resolve, 10000));
+                                // const r = recall();
                                 // const r = await selectFromMLI();
                                 res([])
                             }else{
