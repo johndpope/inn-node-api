@@ -730,10 +730,10 @@ async function selectFromMLI(){
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length === 0 ){
-                                console.log("["+row.length+"]  messages available yet... Selecting from MLI again after 1 second.");
-                                await new Promise(resolve => setTimeout(resolve, 1000));
-                                const r = await selectFromMLI();
-                                res(r)
+                                console.log("["+row.length+"]  messages available yet...");
+                                // await new Promise(resolve => setTimeout(resolve, 1000));
+                                // const r = await selectFromMLI();
+                                res([])
                             }else{
                                 console.log("["+getDateTime()+"] --- Succesfully selected ["+row.length+"] messages from Message_log_insert table ---");
                                 res(row);
