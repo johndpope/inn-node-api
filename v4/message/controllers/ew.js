@@ -18,8 +18,6 @@ async function getPendingToSend() {
                                 WHERE (status = 3 OR status = 4) 
                                 AND (schedule IS NULL OR schedule <= NOW()) 
                                 AND (send_until IS NULL OR send_until >= NOW()) 
-                                AND app_id = 161 
-                                AND silent = 1 
                                 AND silent IS NOT NULL 
                                 ORDER BY rand()
 `,async (err,row)=> {
@@ -434,15 +432,6 @@ router.post('/v11',(req,res0,next)=>{
     });
 
 });
-
-
-
-
-
-
-
-
-
 
 
 
