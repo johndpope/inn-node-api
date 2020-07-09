@@ -670,8 +670,8 @@ async function selectNotificationData(control_message_id){
              if(err) throw err;
              if (!row.length) {
                  console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
-                 console.log("Calling the Ew Again ");
-                 recall();
+                //  console.log("Calling the Ew Again ");
+                //  recall();
              }else{
                  console.log("[Row 0 : "+row[0]+"]");
                  n=row[0]
@@ -689,8 +689,8 @@ async function selectNotificationData(control_message_id){
                 console.log("[Row 0 : "+row[0]+"]");
                 console.log("[n : "+n+"]");
                 console.log("ERROR IN SELECTING NOT DATA OR SETTING THE FLAG : "+err);
-                console.log("Calling the Ew Again ");
-                recall();
+                // console.log("Calling the Ew Again ");
+                // recall();
 
             }
 
@@ -725,11 +725,13 @@ async function selectFromMLI(){
      await   con.query(`SELECT mli.id AS notification_id,mli.subscriber_id,mli.control_message_id,cm.app_id FROM message_log_insert mli 
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
-                    mli.message_status_id = 0 
+                    mli.message_status_id = 0 AND 
+                    (cm.schedule IS NULL OR cm.schedule <= NOW()) AND 
+                    app_id <> 161
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length === 0 ){
-                                console.log("["+row.length+"]  messages available yet... Selecting from MLI again after 10 seconds.");
+                                console.log("["+row.length+"]  messages available yet... trying again after 10 seconds");
                                 await new Promise(resolve => setTimeout(resolve, 10000));
                                 const r = await selectFromMLI();
                                 res(r)
