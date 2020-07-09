@@ -267,7 +267,7 @@ async function updateMessageLogInsertStatus(controlMessageId, maxInsertId){
             if(err) throw err;
             if (row !== undefined)
             {
-                console.log("updating message_log_insert  from 0 to 9 :"+JSON.stringify(row));
+                console.log("updating message_log_insert  from 0 to 9 :");
                 res(JSON.parse(JSON.stringify(row)));
             }
 
@@ -376,8 +376,6 @@ async function getControlMessageChannels(cm_id,app_id){
 
 router.post('/v11',(req,res0,next)=>{
 
-
-
     con.getConnection(async  function(err99,connection){
         if(err99) throw err99;
         console.log("connected!");
@@ -417,7 +415,6 @@ router.post('/v11',(req,res0,next)=>{
                            console.log(er);
                        });
 
-                   console.log("%j",{sendPushRequest});
 
                });
 
