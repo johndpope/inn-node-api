@@ -404,7 +404,8 @@ router.post('/v11',(req,res0,next)=>{
                recipients.forEach(async recipient =>{
 
                    let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
-                   axios.post('http://'+ip.address()+':8080/api/message/' ,
+                   let endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
+                   axios.post(endpoint ,
                        {sendPushRequest}
                    )
                        .then(async response => {
