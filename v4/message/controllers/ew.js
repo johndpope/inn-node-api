@@ -48,7 +48,7 @@ async function getMaxId(controlMessageId) {
                                 ORDER BY id ASC LIMIT 4999,1`, [controlMessageId], async (err, row) => {
             if (err) throw err;
             if (row.length !== 0)
-            {   console.log("Selected MaxID not 0");
+            {   console.log("Selected 5K ...");
                 res(row[0].id)
             }
             else
