@@ -726,7 +726,8 @@ async function selectFromMLI(){
                     JOIN control_message cm ON mli.control_message_id = cm.id_control_message 
                     WHERE (cm.status = 3 OR cm.status = 4) AND 
                     mli.message_status_id = 0 AND 
-                    (cm.schedule IS NULL OR cm.schedule <= NOW())
+                    (cm.schedule IS NULL OR cm.schedule <= NOW()) AND 
+                    app_id <> 161
                     LIMIT 499`,async (err,row)=>{
                         if(err) throw err;
                             if(row.length === 0 ){
