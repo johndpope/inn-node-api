@@ -13,6 +13,7 @@ app.use(cors());
 const messagingRoutes = require('./v4/message/routes/notifications');
 
 const expandWorkerRoute = require('./v4/message/routes/expandWorker');
+const expandWorkerRoute2 = require('./v4/message/routes/expandWorker');
 
 const dashBoardRoutes = require('./v4/analytics/routes/dashBoard');
 
@@ -46,6 +47,7 @@ app.use('/api/message', messagingRoutes);
 
 // Route to handle the resquest on the ExpandWorker
 app.use('/api/expandWorker',expandWorkerRoute);
+app.use('/api/ew',expandWorkerRoute2);
 
 // Route to handle the resquest on the dashBoard
 app.use('/api/analytics/dashboard',cors(),dashBoardRoutes);
