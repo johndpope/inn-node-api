@@ -458,7 +458,7 @@ router.post('/v11',(req,res0,next)=>{
                });
 
 
-            isLast(readyToSend,key);
+            //isLast(readyToSend,key);
         });
         console.log("ending connection...");
         connection.release();
