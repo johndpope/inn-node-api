@@ -6,8 +6,8 @@ const cors = require('cors');
 //const mongoose = require('mongoose');
 //const router = require("routes");
 const redis = require("redis");
-const client = redis.createClient(6379, 'redis')
-client.on('connect', () => console.log('Connected to Redis') )
+const client = redis.createClient(6379, 'redis');
+client.on('connect', () => console.log('Connected to Redis') );
 app.use(cors());
 
 const messagingRoutes = require('./v4/message/routes/notifications');

@@ -1,40 +1,49 @@
 /**
  * Configurations of logger.
  */
+let getDateTime = () =>{
+    let d =  new Date().getDay();
+     let y = new Date().getFullYear();
+     let m =new Date().getMonth();
+
+     return '['+y+'-'+m+'-'+d+']';
+
+};
 const winston = require('winston');
-const winstonRotator = require('winston-daily-rotate-file');
+const EwLogs = winston.createLogger({
+   // level: 'info',
+    format: winston.format.simple(),
+   // defaultMeta: { service: 'user-service' },
+    transports: [
 
-const consoleConfig = [
-    new winston.transports.Console({
-        'colorize': true
-    })
-];
-
-const createLogger = new winston.Logger({
-    'transports': consoleConfig
+        new winston.transports.File({
+            filename: getDateTime()+'ExpandWorker.log',
+            dirname:'v4/logs'
+        }),
+    ],
 });
 
-const EwLogs = createLogger;
-EwLogs.add(winstonRotator, {
-    'name': 'expand-worker',
-    'level': 'info',
-    'filename': '../logs/expandWorker.log',
-    'json': false,
-    'datePattern': 'yyyy-MM-dd-',
-    'prepend': true
-});
 
-const dispatcherLog = createLogger;
-dispatcherLog.add(winstonRotator, {
-    'name': 'dispatcher',
-    'level': 'info',
-    'filename': '../logs/dispatcher.log',
-    'json': false,
-    'datePattern': 'yyyy-MM-dd-',
-    'prepend': true
-});
+// EwLogs.add(new winston.transports.Console({
+//     'name': 'expand-worker',
+//     'level': 'info',
+//     'filename': '../logs/expandWorker.log',
+//     'json': false,
+//     'datePattern': 'yyyy-MM-dd-',
+//     'prepend': true
+// }));
+
+// const dispatcherLog = createLogger;
+// dispatcherLog.add(new winston.transports.Console({
+//     'name': 'dispatcher',
+//     'level': 'info',
+//     'filename': '../logs/dispatcher.log',
+//     'json': false,
+//     'datePattern': 'yyyy-MM-dd-',
+//     'prepend': true
+// }));
 
 module.exports = {
-    'expandWorkerLogging': EwLogs,
-    'dispatcherLogging': dispatcherLog
+    'expandWorkerLogging': EwLogs
+    //'dispatcherLogging': dispatcherLog
 };
