@@ -277,11 +277,13 @@ async function updateMessageLogInsertStatus(controlMessageId, maxInsertId){
     return await Promise.resolve(sql);
 
 }
+
 async function setPerFlagOptmized(title,body){
     var t = (title.includes("|*") || title.includes("*|") || title.includes("{{") || title.includes("}}"));
     var b = (body.includes("|*") || body.includes("*|") || body.includes("{{") || body.includes("}}"));
     return (t || b) ? 1:0;
 }
+
 async function selectCustomFields(subscriber_id){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT  acf.custom_field_name, scf.value 
