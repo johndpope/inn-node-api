@@ -54,13 +54,13 @@ async function getMaxId(controlMessageId) {
             if (row.length !== 0)
             {
                 SaveLog.info("["+getDateTime()+"] Selected 700 ...");
-                console.log("Selected 5K ...");
+                console.log("Selected 700 ...");
                 res(row[0].id)
             }
             else
             {
                 SaveLog.info("["+getDateTime()+"] Less than 700 , let's get less");
-                console.log("Less than 5K , let's get less");
+                console.log("Less than 700 , let's get less");
                 await con.query(`SELECT id
                                         FROM message_log_insert
                                         WHERE control_message_id = ?
