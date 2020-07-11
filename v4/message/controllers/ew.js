@@ -6,8 +6,8 @@ const ip = require('ip');
 const SaveLog = require('../../utils/logger').expandWorkerLogging;
 
 const endpoints = [
-    'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/'
-    //'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
+    'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
 ];
 
 async function getPendingToSend() {
@@ -429,7 +429,6 @@ router.post('/v11',(req,res0,next)=>{
 
                    let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
                    let endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                   console.log(endpoint);
                    axios.post(endpoint ,
                        {sendPushRequest}
                    )
