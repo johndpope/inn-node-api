@@ -7,9 +7,9 @@ const SaveLog = require('../../utils/logger').expandWorkerLogging;
 
 
 const endpoints = [
+    'http://'+ip.address()+':8080/api/message/',
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://'+ip.address()+':8080/api/message/'
-    //'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
 ];
 
 async function getPendingToSend() {
@@ -394,6 +394,16 @@ async function getControlMessageChannels(cm_id,app_id){
     })
     return c;
 }
+async function isLast(recipients,key)
+{
+    if (Object.is(recipients.length -1,key)) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await axios.post('http://'+ip.address()+':8080/api/expandWorker/v33/');
+        console.log('-------------------------[Calling The EW AGAIN..]------------------------------------------');
+        console.log('                      http://'+ip.address()+':8080/api/expandWorker/v33/         ');
+        console.log('-------------------------------------------------------------------------------------------');
+    }
+}
 let getDateTime = () =>{
     return new Date().toLocaleString('en-US', {
         timeZone: 'America/Sao_Paulo'
@@ -406,7 +416,7 @@ router.post('/v11',(req,res0,next)=>{
         if(err99) throw err99;
         console.log("connected!");
         let   readyToSend = await getPendingToSend();
-        readyToSend.forEach(async controlMessage =>{
+        readyToSend.forEach(async (controlMessage,key) =>{
             // CM_id
              const controlMessageId  = controlMessage.control_message_id ;
              // MaxID to control the select
@@ -448,7 +458,7 @@ router.post('/v11',(req,res0,next)=>{
                });
 
 
-
+            isLast(readyToSend,key);
         });
         console.log("ending connection...");
         connection.release();
