@@ -1120,7 +1120,7 @@ let silentPush =(req,res) => {
                         status_details:p_status_details
                     }
                 });
-                res.end();
+
             } else if (response.data.failure===1 && (response.data.results[0]["error"] ==="NotRegistered" || response.data.results[0]["error"] ==="MismatchSenderId"  )){
                 p_status_id = '3';
                 p_status_details='[Silent Push Failed]: '+response.data.results[0]["error"];
@@ -1136,7 +1136,7 @@ let silentPush =(req,res) => {
                         status_id : p_status_id
                     }
                 });
-                res.end();
+
             } else if (response.data.failure===1 && (response.data.results[0]["error"] !=="NotRegistered" || response.data.results[0]["error"] !=="MismatchSenderId"  ))
             {
                 p_status_id = '9';
@@ -1150,7 +1150,7 @@ let silentPush =(req,res) => {
                         status_id : p_status_id
                     }
                 });
-                res.end();
+
             } else {
                 p_status_id = '99';
                 p_status_details='[Silent Push]: '+response;
@@ -1163,7 +1163,7 @@ let silentPush =(req,res) => {
                         status_id : p_status_id
                     }
                 });
-                res.end();
+
             }
         })
         .catch( async function (err) {
@@ -1183,7 +1183,7 @@ let silentPush =(req,res) => {
                         status_id:p_status_id
                     }
                 });
-                res.end();
+
             } else
             {
                 p_status_details='[Silent Push]: '+err.stack;
@@ -1198,7 +1198,7 @@ let silentPush =(req,res) => {
                         status_id:p_status_id
                     }
                 });
-                res.end();
+
             }
         });
 };

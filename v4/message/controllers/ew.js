@@ -3,6 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 const con = require('../connection/DBconnection');
 const ip = require('ip');
+const SaveLog = require('../../utils/logger').expandWorkerLogging;
 
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
@@ -23,10 +24,12 @@ async function getPendingToSend() {
             if(err) throw err;
             if(row.length != 0)
             {
+                SaveLog.info("Selected [" + row.length + "] CMs pending ");
                 console.log("Selected [" + row.length + "] CMs pending ");
                 res(row);
             }
             else {
+                SaveLog.info("Selected [" + row.length + "] CMs pending...Ending Connection");
                 console.log("Selected [" + row.length + "] CMs pending...Ending Connection");
 
             }
@@ -47,11 +50,14 @@ async function getMaxId(controlMessageId) {
                                 ORDER BY id ASC LIMIT 699,1`, [controlMessageId], async (err, row) => {
             if (err) throw err;
             if (row.length !== 0)
-            {   console.log("Selected 5K ...");
+            {
+                SaveLog.info("Selected 700 ...");
+                console.log("Selected 5K ...");
                 res(row[0].id)
             }
             else
             {
+                SaveLog.info("Less than 700 , let's get less");
                 console.log("Less than 5K , let's get less");
                 await con.query(`SELECT id
                                         FROM message_log_insert
@@ -63,11 +69,13 @@ async function getMaxId(controlMessageId) {
 
                     if (row1.length !== 0)
                     {
+                        SaveLog.info("Got a Record ["+row1[0].id+"] for this CM ["+controlMessageId+"]");
                         console.log("Got a Record ["+row1[0].id+"] for this CM ["+controlMessageId+"]");
                         res(row1[0].id)
                     }
                     else
                     {
+                        SaveLog.info("no Records in MLI for this CM ["+controlMessageId+"]");
                         console.log("no Records in MLI for this CM ["+controlMessageId+"]");
                         res(0)
                     }
@@ -90,6 +98,7 @@ async function getControlMessageData(controlMessageId) {
                 WHERE
                     id_control_message = ?`, [controlMessageId], async (err, row) => {
             if (err) throw err;
+            SaveLog.info("Selected CM ["+controlMessageId+"] Data");
             console.log("Selected CM ["+controlMessageId+"] Data ");
             res(row[0]);
 
@@ -120,6 +129,7 @@ async function getAppConfigData(app_id){
                 WHERE
                     app_id = ?`,[app_id],(err,row)=>{
             if(err) throw err;
+            SaveLog.info("["+app_id+"] App_config an User_data successfully selected from database");
             console.log("App_config an User_data successfully selected from database");
             res(row[0]);
         })
@@ -151,11 +161,13 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
             if (err) throw err;
             if (row.length !== 0)
             {
+                SaveLog.info("Selected the recipients "+ row.length);
                 console.log("Selected the recipients "+ row.length);
                 await updateMessageLogInsertStatus(controlMessageId, maxInsertId);
                 res(row);
             } else
             {
+                SaveLog.info("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 console.log("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 await handleRecipients(controlMessageId,status);
             }
@@ -175,6 +187,7 @@ async function checkPendingPushes(controlMessageId) {
                     control_message_id = ?
                         AND message_status_id = 0`,[controlMessageId],(err,row)=>{
             if(err) throw err;
+            SaveLog.info("Got ["+row[0].pendings+"] Pending pushes for this CM ["+controlMessageId+"]");
             console.log("Got ["+row[0].pendings+"] Pending pushes for this CM ["+controlMessageId+"]");
             res(row[0]);
         })
@@ -199,6 +212,7 @@ async function countResponses(controlMessageId) {
             if(err) throw err;
             if (row.length !== 0)
             {
+                SaveLog.info("Got ["+row[0].mr_total+"] Responses out of ["+row[0].mli_total+"] for this CM ["+controlMessageId+"]");
                 console.log("Got ["+row[0].mr_total+"] Responses out of ["+row[0].mli_total+"] for this CM ["+controlMessageId+"]");
                 res(row[0]);
             }
@@ -209,14 +223,17 @@ async function countResponses(controlMessageId) {
 
 }
 async function checkPending(controlMessageId) {
+    SaveLog.info("Verifying pending pushes for CMId: " + controlMessageId);
     console.log("Verifying pending pushes for CMId: " + controlMessageId);
     let pending = await checkPendingPushes(controlMessageId);
 
     if(pending.pendings === 0) {
+        SaveLog.info("Verifying responses for CMId: " +controlMessageId);
         console.log("Verifying responses for CMId: " +controlMessageId);
        let  messages = await countResponses(controlMessageId);
         if(messages["mr_total"] >= (0.98*messages["mli_total"])) {
             await updateCMStatus(controlMessageId,5);
+            SaveLog.info("Completed sending CMId " +controlMessageId+"... Updating to 5");
             console.log("Completed sending CMId " +controlMessageId+"... Updating to 5");
         }
 
@@ -228,6 +245,7 @@ async function updateCMStatus(controlMessageId,status) {
             if(err) throw err;
             if(row !== undefined)
             {
+                SaveLog.info("updating ["+controlMessageId+"] to status ["+status+"]");
                 console.log("updating ["+controlMessageId+"] to status ["+status+"]");
                 res(JSON.parse(JSON.stringify(row)));
             }
@@ -244,6 +262,7 @@ async function handleRecipients(controlMessageId,cm_status) {
 
         if(cm_status == 3) {
            await  updateCMStatus(controlMessageId,9);
+           SaveLog.info("ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
         } else {
             await checkPending(controlMessageId);
@@ -276,13 +295,11 @@ async function updateMessageLogInsertStatus(controlMessageId, maxInsertId){
     return await Promise.resolve(sql);
 
 }
-
 async function setPerFlagOptmized(title,body){
     var t = (title.includes("|*") || title.includes("*|") || title.includes("{{") || title.includes("}}"));
     var b = (body.includes("|*") || body.includes("*|") || body.includes("{{") || body.includes("}}"));
     return (t || b) ? 1:0;
 }
-
 async function selectCustomFields(subscriber_id){
     const sql = await new Promise((res,rej)=>{
         con.query(`SELECT  acf.custom_field_name, scf.value 
@@ -404,19 +421,21 @@ router.post('/v11',(req,res0,next)=>{
 
                recipients.forEach(async recipient =>{
 
-                   //let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
+                   let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
                    let endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                   console.log(endpoint);
-                   /*axios.post(endpoint ,
+                   //console.log(endpoint);
+                   axios.post(endpoint ,
                        {sendPushRequest}
                    )
                        .then(async response => {
                            console.log(response.data);
+                           SaveLog.info("[CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"]"+response.data);
                        })
                        .catch( er => {
                            console.log("Error on sending  to Dispatcher...");
+                           SaveLog.info("Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+er);
                            console.log(er);
-                       });*/
+                       });
 
 
                });
