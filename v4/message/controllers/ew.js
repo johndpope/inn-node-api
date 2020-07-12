@@ -161,7 +161,6 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
             {
                 SaveLog.info("["+getDateTime()+"] Selected the recipients "+ row.length);
                 console.log("Selected the recipients "+ row.length);
-                await updateMessageLogInsertStatus(controlMessageId, maxInsertId);
                 res(row);
             }
             else
@@ -278,22 +277,21 @@ async function getAppIsProduction(app_id){
     return await Promise.resolve(sql);
 
 }
-async function updateMessageLogInsertStatus(controlMessageId, maxInsertId){
+async function updateMessageLogInsertStatus(not_id){
     const sql = await new Promise( async (res,rej)=>{
         await con.query(`UPDATE message_log_insert 
                   SET message_status_id = 9 
-              WHERE control_message_id = ? 
-              AND id <= ?`,[controlMessageId, maxInsertId],(err,row)=>{
+              WHERE id = ?`,[not_id],(err,row)=>{
             if(err) throw err;
             if (row !== undefined || row !== null )
             {
-                SaveLog.info("["+getDateTime()+"] updating message_log_insert  from 0 to 9 : "+JSON.stringify(row));
-                console.log("updating message_log_insert  from 0 to 9 : "+JSON.stringify(row));
-                res(JSON.parse(JSON.stringify(row)));
+                SaveLog.info("["+getDateTime()+"] updating ["+not_id+"]  from 0 to 9");
+                console.log("updating ["+not_id+"]  from 0 to 9  ");
+                res(row);
             } else
             {
-                SaveLog.error("["+getDateTime()+"] ERROR updating message_log_insert  from 0 to 9 :"+JSON.stringify(row));
-                console.log("ERROR updating message_log_insert  from 0 to 9 :");
+                SaveLog.error("["+getDateTime()+"] ERROR updating ["+not_id+"]  from 0 to 9 :"+JSON.stringify(row));
+                console.log("ERROR updating ["+not_id+"]  from 0 to 9 :");
             }
 
         })
@@ -441,7 +439,7 @@ router.post('/v11',(req,res0,next)=>{
              }
 
                recipients.forEach(async recipient =>{
-
+                  let updated = await updateMessageLogInsertStatus(recipient.not_id);
                    let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
                    let endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
                    axios.post(endpoint ,
@@ -455,6 +453,7 @@ router.post('/v11',(req,res0,next)=>{
                            console.log("Error on sending  to Dispatcher...");
                            SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er));
                            console.log(er);
+
                        });
 
 
