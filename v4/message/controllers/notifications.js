@@ -22,10 +22,16 @@ let isEmpty = (val) => {
             return val === '' || val === undefined;
     }
 };
+// let getDateTime = () =>{
+//     return new Date().toLocaleString('en-US', {
+//         timeZone: 'America/Sao_Paulo'
+//     })
+// };
+
 let getDateTime = () =>{
-    return new Date().toLocaleString('en-US', {
-        timeZone: 'America/Sao_Paulo'
-    })
+    var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+    return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 19).replace('T', ' ');
+
 };
 
 exports.send = async (req,res,next) =>{
@@ -1271,7 +1277,7 @@ function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control
 
                     if (p_status_id === '3' && p_message_status.includes("NotRegistered") )
                     {
-                        await con.query('UPDATE subscriber SET cloud_status = 1,uninstall_date = NOW() WHERE id = ?',[p_subscriber_id],
+                        await con.query('UPDATE subscriber SET cloud_status = 1,uninstall_date = ? WHERE id = ?',[getDateTime(),p_subscriber_id],
                             async (error,update)=>{
                                 if(error) reject(error);
                                 resolve(insert,update);
