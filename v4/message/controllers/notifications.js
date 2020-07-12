@@ -1268,20 +1268,25 @@ function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control
                 [p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],
                 async (error,insert)=>{
             if(error) reject(error);
-            resolve(insert);
-        }
-        ).then( async (re) => {
-            if (p_status_id === '3' && p_message_status.includes("NotRegistered") )
-            {
-                await con.query('UPDATE subscriber SET cloud_status = 1,uninstall_date = NOW() WHERE id = ?',[p_subscriber_id],
-                    async (error,update)=>{
-                        if(error) reject(error);
-                        resolve(update);
+
+                    if (p_status_id === '3' && p_message_status.includes("NotRegistered") )
+                    {
+                        await con.query('UPDATE subscriber SET cloud_status = 1,uninstall_date = NOW() WHERE id = ?',[p_subscriber_id],
+                            async (error,update)=>{
+                                if(error) reject(error);
+                                resolve(insert,update);
+                            }
+                        )
                     }
-                )
-            }
+                    else
+                        {
+                            resolve(insert);
+                    }
 
-       });
+        })
 
-    });
+    })
+
+
+
 }
