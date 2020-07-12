@@ -82,7 +82,7 @@ app.use('/api/cache',(req,res,next) => {
 
 app.use((req,res,next) => {
     const error  = new Error('Verify the END-POINT or the request Method (POST)');
-    console.log('%O', req);
+    //console.log('%O', req);
     error.status=401;
     next(error);
 });
