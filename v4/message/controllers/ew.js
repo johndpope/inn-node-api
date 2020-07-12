@@ -19,9 +19,8 @@ async function getPendingToSend() {
                                 FROM control_message 
                                 WHERE (status = 3 OR status = 4) 
                                 AND (schedule IS NULL OR schedule <= NOW()) 
-                                AND (send_until IS NULL OR send_until >= NOW()) 
-                                AND silent IS NOT NULL 
-                                ORDER BY rand()
+                                AND app_id = 288
+                                and silent = 1
 `,async (err,row)=> {
             if(err) throw err;
             if(row.length != 0)
@@ -53,14 +52,14 @@ async function getMaxId(controlMessageId) {
             if (err) throw err;
             if (row.length !== 0)
             {
-                SaveLog.info("["+getDateTime()+"] Selected 700 ...");
-                console.log("Selected 700 ...");
+                SaveLog.info("["+getDateTime()+"] Selected 500 from CM ["+controlMessageId+"] ...");
+                console.log("Selected 500 from CM ["+controlMessageId+"]...");
                 res(row[0].id)
             }
             else
             {
-                SaveLog.info("["+getDateTime()+"] Less than 700 , let's get less");
-                console.log("Less than 700 , let's get less");
+                SaveLog.info("["+getDateTime()+"] Less than 500 , let's get less from CM ["+controlMessageId+"]");
+                console.log("Less than 500 , let's get less from CM ["+controlMessageId+"]");
                 await con.query(`SELECT id
                                         FROM message_log_insert
                                         WHERE control_message_id = ?
@@ -167,7 +166,8 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
                 console.log("Selected the recipients "+ row.length);
                 await updateMessageLogInsertStatus(controlMessageId, maxInsertId);
                 res(row);
-            } else
+            }
+            else
             {
                 SaveLog.info("["+getDateTime()+"] ["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 console.log("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
@@ -282,14 +282,21 @@ async function getAppIsProduction(app_id){
 
 }
 async function updateMessageLogInsertStatus(controlMessageId, maxInsertId){
-    const sql = await new Promise((res,rej)=>{
-        con.query("CALL update_mli_status_0_to_9_new (?,?)",[controlMessageId, maxInsertId],(err,row)=>{
+    const sql = await new Promise( async (res,rej)=>{
+        await con.query(`UPDATE message_log_insert 
+                  SET message_status_id = 9 
+              WHERE control_message_id = ? 
+              AND id <= ?`,[controlMessageId, maxInsertId],(err,row)=>{
             if(err) throw err;
-            if (row !== undefined)
+            if (row !== undefined || row !== null )
             {
-                SaveLog.info("["+getDateTime()+"] updating message_log_insert  from 0 to 9 :");
-                console.log("updating message_log_insert  from 0 to 9 :");
+                SaveLog.info("["+getDateTime()+"] updating message_log_insert  from 0 to 9 : "+JSON.stringify(row));
+                console.log("updating message_log_insert  from 0 to 9 : "+JSON.stringify(row));
                 res(JSON.parse(JSON.stringify(row)));
+            } else
+            {
+                SaveLog.error("["+getDateTime()+"] ERROR updating message_log_insert  from 0 to 9 :"+JSON.stringify(row));
+                console.log("ERROR updating message_log_insert  from 0 to 9 :");
             }
 
         })
@@ -394,8 +401,7 @@ async function getControlMessageChannels(cm_id,app_id){
     })
     return c;
 }
-async function isLast(recipients,key)
-{
+async function isLast(recipients,key) {
     if (Object.is(recipients.length -1,key)) {
         await new Promise(resolve => setTimeout(resolve, 2000));
         await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
@@ -431,7 +437,7 @@ router.post('/v11',(req,res0,next)=>{
 
              let initialControlMessageStatus = cmData.status;
 
-             if(initialControlMessageStatus == 3 )
+             if(initialControlMessageStatus === 3 )
              {
                  await updateCMStatus(controlMessageId,4);
 
@@ -446,9 +452,9 @@ router.post('/v11',(req,res0,next)=>{
                    )
                        .then(async response => {
                            console.log(response.data);
-                           SaveLog.info("["+getDateTime()+"][CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"]"+response.data);
+                           SaveLog.info("["+getDateTime()+"][CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"]"+JSON.stringify(response.data));
                        })
-                       .catch( er => {
+                       .catch( async er => {
                            console.log("Error on sending  to Dispatcher...");
                            SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er));
                            console.log(er);
