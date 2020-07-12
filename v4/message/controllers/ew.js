@@ -18,10 +18,7 @@ async function getPendingToSend() {
         await   con.query(`SELECT id_control_message AS control_message_id 
                                 FROM control_message 
                                 WHERE (status = 3 OR status = 4) 
-                                AND (schedule IS NULL OR schedule <= NOW()) 
-                                AND app_id = 288
-                                and silent = 1
-`,async (err,row)=> {
+                                AND (schedule IS NULL OR schedule <= NOW())`,async (err,row)=> {
             if(err) throw err;
             if(row.length != 0)
             {
