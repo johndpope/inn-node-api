@@ -1249,14 +1249,39 @@ function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_control
     })
 }
 
-function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id){
+function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id) {
     //let sent_at = getDateTime();
-    return new Promise((resolve,reject)=>{
-        con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],(error,response)=>{
-            if(error) reject(error);
-            resolve(response);
-        }
+    return new Promise(async (resolve, reject) => {
+       await  con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],async (error,response)=>{
+                if (error) reject(error);
+                resolve(response);
+            }
         );
 
     });
-};
+}
+//     function saveResponses(p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id){
+//     //let sent_at = getDateTime();
+//     return new Promise( async (resolve,reject)=>{
+//         //con.query('CALL add_message_response_v4 (?,?,?,?,?,?,?,?, @ret_code)',[p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],(error,response)=>{
+//        await con.query('INSERT INTO message_responses (id, subscriber_id, msg_title, msg_body, platform_id, status_id, status_details, control_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+//                 [p_id,p_subscriber_id,p_title,p_body,p_platform_id,p_status_id,p_message_status,p_control_message_id],
+//                 async (error,insert)=>{
+//             if(error) reject(error);
+//             resolve(insert);
+//         }
+//         ).then( async (re) => {
+//             if (p_status_id === '3' && p_message_status.includes("NotRegistered") )
+//             {
+//                 await con.query('UPDATE subscriber SET cloud_status = 1,uninstall_date = NOW() WHERE id = ?',[p_subscriber_id],
+//                     async (error,update)=>{
+//                         if(error) reject(error);
+//                         resolve(update);
+//                     }
+//                 )
+//             }
+//
+//        });
+//
+//     });
+// }

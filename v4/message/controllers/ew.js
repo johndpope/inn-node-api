@@ -295,6 +295,7 @@ async function updateMessageLogInsertStatus(not_id){
             }
 
         })
+
     });
 
     return await Promise.resolve(sql);
