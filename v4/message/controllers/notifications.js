@@ -1,4 +1,5 @@
-const axios = require('axios');
+//const axios = require('axios');
+const axios = require('../../utils/axios-instance');
 const apn = require('apn');
 const http = require('https');
 const fs = require('fs');

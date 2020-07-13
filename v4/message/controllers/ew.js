@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios');
+const axios = require('../../utils/axios-instance');
 const router = express.Router();
 const con = require('../connection/DBconnection');
 const ip = require('ip');
