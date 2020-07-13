@@ -181,7 +181,7 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
             {
                 SaveLog.info("["+getDateTime()+"] ["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 console.log("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
-                await handleRecipients(controlMessageId,status);
+                return await handleRecipients(controlMessageId,status);
             }
 
 
@@ -272,10 +272,11 @@ async function handleRecipients(controlMessageId,cm_status) {
 
         // Verify if control_message isn't being send before changing its status
 
-        if(cm_status == 3) {
+        if(cm_status === 3) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
+
         } else {
             await checkPending(controlMessageId);
         }
@@ -487,7 +488,7 @@ router.post('/v11',(req,res0,next)=>{
                });
 
 
-            await isLast(readyToSend,key);
+            //await isLast(readyToSend,key);
         });
         console.log("ending connection...");
         connection.release();
