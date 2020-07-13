@@ -33,7 +33,7 @@ async function getPendingToSend() {
                                 WHERE (status = 3 OR status = 4) 
                                 AND (schedule IS NULL OR schedule <= NOW())`,async (err,row)=> {
             if(err) throw err;
-            if(row.length != 0)
+            if(row.length !== 0)
             {
                 SaveLog.info("["+getDateTime()+"] Selected [" + row.length + "] CMs pending ");
                 console.log("Selected [" + row.length + "] CMs pending ");
@@ -42,7 +42,8 @@ async function getPendingToSend() {
             else {
                 SaveLog.info("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
                 console.log("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
-                await recall();
+                res(0);
+
             }
 
 
@@ -435,6 +436,14 @@ router.post('/v11',(req,res0,next)=>{
         if(err99) throw err99;
         console.log("connected!");
         let   readyToSend = await getPendingToSend();
+        if(readyToSend === 0)
+        {
+            await recall();
+        }
+        else
+        {
+
+
         readyToSend.forEach(async (controlMessage,key) =>{
             // CM_id
              const controlMessageId  = controlMessage.control_message_id ;
@@ -485,6 +494,7 @@ router.post('/v11',(req,res0,next)=>{
         res0.status(200).json({
             SendPushRespnse:'success'
         });
+        }
     });
 
 });
