@@ -440,8 +440,7 @@ router.post('/v11',(req,res0,next)=>{
 
         if(readyToSend.length == 0 )
         {
-            console.log("No Pending CMs ... ending connection...");
-            connection.release();
+
             res0.status(200).json({
                 SendPushResponse:'No Pending CMs'
             });
