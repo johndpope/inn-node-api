@@ -14,7 +14,7 @@ const endpoints = [
 
 async  function recall() {
 
-    SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...after 10 seconds]------------------------------------------");
+    SaveLog.info("["+getDateTime()+"]-------------------------[RECALL of 0 PENDING...after 10 seconds]------------------------------------------");
     SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
     SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
     console.log('-------------------------[RECALL...after 10 seconds]------------------------------------------');
@@ -412,7 +412,7 @@ async function getControlMessageChannels(cm_id,app_id){
 }
 async function isLast(recipients,key) {
     if (Object.is(recipients.length -1,key) || (recipients.length === 1)) {
-        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...in 10 seconds]------------------------------------------");
+        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL of LAST RECORD...in 10 seconds]------------------------------------------");
         SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
         SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
         console.log('-------------------------[RECALL...in 10 seconds]------------------------------------------');
@@ -478,7 +478,7 @@ router.post('/v11',(req,res0,next)=>{
                });
 
 
-            isLast(readyToSend,key);
+            await isLast(readyToSend,key);
         });
         console.log("ending connection...");
         connection.release();
