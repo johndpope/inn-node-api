@@ -10,3 +10,5 @@ build
 npm-debug.log
 #Logs Directory
 v4/logs/
+#idea
+.idea/
