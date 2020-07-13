@@ -42,7 +42,7 @@ async function getPendingToSend() {
             else {
                 SaveLog.info("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
                 console.log("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
-                res(0);
+
 
             }
 
@@ -437,12 +437,6 @@ router.post('/v11',(req,res0,next)=>{
         if(err99) throw err99;
         console.log("connected!");
         let   readyToSend = await getPendingToSend();
-        if(readyToSend === 0)
-        {
-            await recall();
-        }
-        else
-        {
 
 
         readyToSend.forEach(async (controlMessage,key) =>{
@@ -495,7 +489,7 @@ router.post('/v11',(req,res0,next)=>{
         res0.status(200).json({
             SendPushRespnse:'success'
         });
-        }
+
     });
 
 });
