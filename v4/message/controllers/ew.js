@@ -12,6 +12,18 @@ const endpoints = [
     'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/'
 ];
 
+async  function recall() {
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...after 10 seconds]------------------------------------------");
+    SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
+    SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
+    console.log('-------------------------[RECALL...after 10 seconds]------------------------------------------');
+    console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
+    console.log('------------------------------------------------------------------------------');
+    await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
+
+}
+
 async function getPendingToSend() {
 
     const sql = await new Promise(async (res,rej)=>{
@@ -29,7 +41,7 @@ async function getPendingToSend() {
             else {
                 SaveLog.info("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
                 console.log("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
-
+                await recall();
             }
 
 
