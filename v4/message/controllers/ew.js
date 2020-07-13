@@ -17,10 +17,10 @@ async  function recall() {
     SaveLog.info("["+getDateTime()+"]-------------------------[RECALL of 0 PENDING...after 10 seconds]------------------------------------------");
     SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
     SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
-    console.log('-------------------------[RECALL...after 10 seconds]------------------------------------------');
+    console.log('-------------------------[RECALL  of 0 PENDING...after 10 seconds]------------------------------------------');
     console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
     console.log('------------------------------------------------------------------------------');
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
 
 }
@@ -419,7 +419,7 @@ async function isLast(recipients,key) {
         console.log('-------------------------[RECALL...in 10 seconds]------------------------------------------');
         console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
         console.log('------------------------------------------------------------------------------');
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
         await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
 
     }
