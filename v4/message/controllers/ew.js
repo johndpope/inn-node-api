@@ -41,8 +41,8 @@ async function getPendingToSend() {
             }
             else {
                 SaveLog.info("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
-                console.log("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...Ending Connection");
-
+                console.log("["+getDateTime()+"] Selected [" + row.length + "] CMs pending...");
+                res(row);
 
             }
 
@@ -438,6 +438,15 @@ router.post('/v11',(req,res0,next)=>{
         console.log("connected!");
         let   readyToSend = await getPendingToSend();
 
+        if(readyToSend.length == 0 )
+        {
+            console.log("No Pending CMs ... ending connection...");
+            connection.release();
+            res0.status(200).json({
+                SendPushResponse:'No Pending CMs'
+            });
+        }
+
 
         readyToSend.forEach(async (controlMessage,key) =>{
             // CM_id
@@ -487,7 +496,7 @@ router.post('/v11',(req,res0,next)=>{
         console.log("ending connection...");
         connection.release();
         res0.status(200).json({
-            SendPushRespnse:'success'
+            SendPushResponse:'success'
         });
 
     });
