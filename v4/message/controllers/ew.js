@@ -452,7 +452,7 @@ router.post('/v11',(req,res0,next)=>{
                        })
                        .catch( async er => {
                            console.log("Error on sending  to Dispatcher...");
-                           SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er));
+                           SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.parse(JSON.stringify(er)));
                            console.log(er);
 
                        });
