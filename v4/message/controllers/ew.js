@@ -398,7 +398,7 @@ async function getControlMessageChannels(cm_id,app_id){
     return c;
 }
 async function isLast(recipients,key) {
-    if (Object.is(recipients.length -1,key)) {
+    if (Object.is(recipients.length -1,key) || (recipients.length === 1)) {
         await new Promise(resolve => setTimeout(resolve, 10000));
         await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
         SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...]------------------------------------------");
