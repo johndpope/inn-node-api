@@ -59,7 +59,7 @@ async function getMaxId(controlMessageId) {
                                 FROM message_log_insert 
                                 WHERE control_message_id = ?
                                 AND message_status_id = 0 
-                                ORDER BY id ASC LIMIT 499,1`, [controlMessageId], async (err, row) => {
+                                ORDER BY id ASC LIMIT 1499,1`, [controlMessageId], async (err, row) => {
             if (err) throw err;
             if (row.length !== 0)
             {
@@ -276,7 +276,6 @@ async function handleRecipients(controlMessageId,cm_status) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
-
         } else {
             await checkPending(controlMessageId);
         }
