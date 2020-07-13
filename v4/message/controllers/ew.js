@@ -399,11 +399,14 @@ async function getControlMessageChannels(cm_id,app_id){
 }
 async function isLast(recipients,key) {
     if (Object.is(recipients.length -1,key)) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 10000));
         await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
-        console.log('-------------------------[Calling The EW AGAIN..]------------------------------------------');
+        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...]------------------------------------------");
+        SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
+        SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
+        console.log('-------------------------[RECALL...]------------------------------------------');
         console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
-        console.log('-------------------------------------------------------------------------------------------');
+        console.log('------------------------------------------------------------------------------');
     }
 }
 let getDateTime = () =>{
@@ -461,7 +464,7 @@ router.post('/v11',(req,res0,next)=>{
                });
 
 
-            //isLast(readyToSend,key);
+            isLast(readyToSend,key);
         });
         console.log("ending connection...");
         connection.release();
