@@ -444,8 +444,8 @@ router.post('/v11',(req,res0,next)=>{
             res0.status(200).json({
                 SendPushResponse:'No Pending CMs'
             });
-        }
-
+        } else
+        {
 
         readyToSend.forEach(async (controlMessage,key) =>{
             // CM_id
@@ -497,7 +497,7 @@ router.post('/v11',(req,res0,next)=>{
         res0.status(200).json({
             SendPushResponse:'success'
         });
-
+        }
     });
 
 });
