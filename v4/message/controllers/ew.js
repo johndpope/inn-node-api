@@ -13,13 +13,14 @@ const endpoints = [
 ];
 
 async  function recall() {
-    await new Promise(resolve => setTimeout(resolve, 10000));
+
     SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...after 10 seconds]------------------------------------------");
     SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
     SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
     console.log('-------------------------[RECALL...after 10 seconds]------------------------------------------');
     console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
     console.log('------------------------------------------------------------------------------');
+    await new Promise(resolve => setTimeout(resolve, 10000));
     await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
 
 }
@@ -411,14 +412,15 @@ async function getControlMessageChannels(cm_id,app_id){
 }
 async function isLast(recipients,key) {
     if (Object.is(recipients.length -1,key) || (recipients.length === 1)) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
-        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...]------------------------------------------");
+        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL...in 10 seconds]------------------------------------------");
         SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
         SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
-        console.log('-------------------------[RECALL...]------------------------------------------');
+        console.log('-------------------------[RECALL...in 10 seconds]------------------------------------------');
         console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
         console.log('------------------------------------------------------------------------------');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
+
     }
 }
 let getDateTime = () =>{
