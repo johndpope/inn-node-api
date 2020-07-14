@@ -180,7 +180,7 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
             {
                 SaveLog.info("["+getDateTime()+"] ["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 console.log("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
-                 handleRecipients(controlMessageId,status);
+                return await handleRecipients(controlMessageId,status);
             }
 
 
@@ -236,25 +236,18 @@ async function countResponses(controlMessageId) {
 async function checkPending(controlMessageId) {
     SaveLog.info("["+getDateTime()+"] Verifying pending pushes for CMId: " + controlMessageId);
     console.log("Verifying pending pushes for CMId: " + controlMessageId);
-    let pending =  checkPendingPushes(controlMessageId);
+    let pending = await checkPendingPushes(controlMessageId);
 
     if(pending.pendings === 0) {
         SaveLog.info("["+getDateTime()+"] Verifying responses for CMId: " +controlMessageId);
         console.log("Verifying responses for CMId: " +controlMessageId);
-       let  messages =  countResponses(controlMessageId);
+       let  messages = await countResponses(controlMessageId);
         if(messages["mr_total"] >= (0.98*messages["mli_total"])) {
             await updateCMStatus(controlMessageId,5);
             SaveLog.info("["+getDateTime()+"] Completed sending CMId " +controlMessageId+"... Updating to 5");
             console.log("Completed sending CMId " +controlMessageId+"... Updating to 5");
-            return ;
-        } else
-        {
-            return ;
         }
-
-    } else {
-        return ;
-    }
+}
 }
 async function updateCMStatus(controlMessageId,status) {
     const sql = await new Promise((res,rej)=>{
@@ -281,9 +274,8 @@ async function handleRecipients(controlMessageId,cm_status) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
-            return;
         } else {
-              checkPending(controlMessageId);
+           return  await checkPending(controlMessageId);
         }
     }
 async function getAppIsProduction(app_id){
@@ -509,14 +501,12 @@ router.post('/v11',(req,res0,next)=>{
 
 
                     });
-                if(Object.is(recipients.length -1,Rkey)){
-                     isLast(readyToSend,key);
-                }
+
 
             });
         } else
             {
-                 isLast(readyToSend,key);
+                await isLast(readyToSend,key);
             }
 
             //await isLast(readyToSend,key);
