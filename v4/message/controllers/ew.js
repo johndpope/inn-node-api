@@ -480,8 +480,25 @@ router.post('/v11',(req,res0,next)=>{
                        })
                        .catch( async er => {
                            console.log("Error on sending  to Dispatcher...");
-                           SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er.response.data));
-                           console.log(er);
+                           if (er.response) {
+                               // The request was made and the server responded with a status code
+                               // that falls out of the range of 2xx
+                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er.response));
+                               console.log(er.response);
+
+                           } else if (er.request) {
+                               // The request was made but no response was received
+                               // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                               // http.ClientRequest in node.js
+                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er.request));
+                               console.log(er.request);
+                           } else {
+                               // Something happened in setting up the request that triggered an Error
+                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er.message));
+                               console.log('Error', er.message);
+                           }
+
+
 
                        });
 
