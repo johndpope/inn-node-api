@@ -246,8 +246,14 @@ async function checkPending(controlMessageId) {
             await updateCMStatus(controlMessageId,5);
             SaveLog.info("["+getDateTime()+"] Completed sending CMId " +controlMessageId+"... Updating to 5");
             console.log("Completed sending CMId " +controlMessageId+"... Updating to 5");
+            return false;
+        } else
+        {
+            return false;
         }
 
+    } else {
+        return false ;
     }
 }
 async function updateCMStatus(controlMessageId,status) {
@@ -275,8 +281,9 @@ async function handleRecipients(controlMessageId,cm_status) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
+            return  false ;
         } else {
-            await checkPending(controlMessageId);
+           return  await checkPending(controlMessageId);
         }
     }
 async function getAppIsProduction(app_id){
@@ -503,11 +510,14 @@ router.post('/v11',(req,res0,next)=>{
 
                     });
                 if(Object.is(recipients.length -1,Rkey)){
-                    isLast(readyToSend,key);      
+                     isLast(readyToSend,key);
                 }
 
             });
-        }
+        } else
+            {
+                 isLast(readyToSend,key);
+            }
 
             //await isLast(readyToSend,key);
         });
