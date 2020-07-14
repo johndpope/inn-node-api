@@ -412,15 +412,15 @@ async function getControlMessageChannels(cm_id,app_id){
     })
     return c;
 }
-async function isLast(recipients,key) {
-    if (Object.is(recipients.length -1,key) || (recipients.length === 1)) {
-        SaveLog.info("["+getDateTime()+"]-------------------------[RECALL of LAST RECORD...in 10 seconds]------------------------------------------");
+async function isLast(ReadyToSend,key) {
+    if (Object.is(ReadyToSend.length -1,key)) {
+        SaveLog.info("["+getDateTime()+"]----------------[RECALL of LAST RECORD...in 10 seconds]----------------------");
         SaveLog.info("["+getDateTime()+"]              http://"+ip.address()+":8080/api/ew/v11/         ");
         SaveLog.info("["+getDateTime()+"]------------------------------------------------------------------------------");
         console.log('-------------------------[RECALL...in 10 seconds]------------------------------------------');
         console.log('                      http://'+ip.address()+':8080/api/ew/v11/         ');
         console.log('------------------------------------------------------------------------------');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 10000));
         await axios.post('http://'+ip.address()+':8080/api/ew/v11/');
 
     }
@@ -469,7 +469,7 @@ router.post('/v11',(req,res0,next)=>{
             let updated = await updateMessageLogInsertStatus(controlMessageId, maxInsertId);
             if (updated) {
 
-            recipients.forEach(async recipient => {
+            recipients.forEach(async (recipient,Rkey) => {
 
                 let sendPushRequest = await buildPushResponse(controlMessageId, cmData, platformData, recipient);
                 let endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
@@ -502,7 +502,7 @@ router.post('/v11',(req,res0,next)=>{
 
 
                     });
-                if(recipient == recipients[(recipients.length - 1)]){
+                if(Object.is(recipients.length -1,Rkey)){
                     isLast(readyToSend,key);      
                 }
 
