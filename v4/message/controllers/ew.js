@@ -291,21 +291,23 @@ async function getAppIsProduction(app_id){
     return await Promise.resolve(sql);
 
 }
-async function updateMessageLogInsertStatus(not_id){
+async function updateMessageLogInsertStatus(controlMessageId,maxInsertId){
     const sql = await new Promise( async (res,rej)=>{
         await con.query(`UPDATE message_log_insert 
                   SET message_status_id = 9 
-              WHERE id = ?`,[not_id],(err,row)=>{
+              WHERE control_message_id = ? 
+              AND id <= ?`,[controlMessageId, maxInsertId],(err,row)=>{
             if(err) throw err;
             if (row !== undefined || row !== null )
             {
-                SaveLog.info("["+getDateTime()+"] updating ["+not_id+"]  from 0 to 9");
-                console.log("updating ["+not_id+"]  from 0 to 9  ");
+                SaveLog.info("["+getDateTime()+"] updating until ["+maxInsertId+"]  from 0 to 9");
+                console.log("updating until ["+maxInsertId+"]  from 0 to 9  ");
                 res(row);
             } else
             {
-                SaveLog.error("["+getDateTime()+"] ERROR updating ["+not_id+"]  from 0 to 9 :"+JSON.stringify(row));
-                console.log("ERROR updating ["+not_id+"]  from 0 to 9 :");
+                SaveLog.error("["+getDateTime()+"] ERROR updating until ["+maxInsertId+"]  from 0 to 9 :"+JSON.stringify(row));
+                console.log("ERROR updating until ["+maxInsertId+"]  from 0 to 9 :");
+                return false;
             }
 
         })
@@ -446,65 +448,65 @@ router.post('/v11',(req,res0,next)=>{
         } else
         {
 
-        readyToSend.forEach(async (controlMessage,key) =>{
+        readyToSend.forEach(async (controlMessage,key) => {
             // CM_id
-             const controlMessageId  = controlMessage.control_message_id ;
-             // MaxID to control the select
-             const maxInsertId =  await getMaxId(controlMessageId);
-             //CM data
-             const cmData = await handleControlMessage(controlMessageId);
-             //Platform Data {AppConfig..}
-             const platformData = await  handlePlatformData(cmData.app_id);
-           // List of Subscribers who should receive
-             let recipients = await  getRecipients(controlMessageId, maxInsertId,cmData.status);
+            const controlMessageId = controlMessage.control_message_id;
+            // MaxID to control the select
+            const maxInsertId = await getMaxId(controlMessageId);
+            //CM data
+            const cmData = await handleControlMessage(controlMessageId);
+            //Platform Data {AppConfig..}
+            const platformData = await handlePlatformData(cmData.app_id);
+            // List of Subscribers who should receive
+            let recipients = await getRecipients(controlMessageId, maxInsertId, cmData.status);
 
 
-             let initialControlMessageStatus = cmData.status;
+            let initialControlMessageStatus = cmData.status;
 
-             if(initialControlMessageStatus === 3 )
-             {
-                 await updateCMStatus(controlMessageId,4);
+            if (initialControlMessageStatus === 3) {
+                await updateCMStatus(controlMessageId, 4);
+            }
 
-             }
+            let updated = await updateMessageLogInsertStatus(controlMessageId, maxInsertId);
+            if (updated) {
 
-               recipients.forEach(async recipient =>{
-                  let updated = await updateMessageLogInsertStatus(recipient.not_id);
-                   let  sendPushRequest =  await buildPushResponse(controlMessageId, cmData,platformData,recipient);
-                   let endpoint = endpoints[Math.floor(Math.random()*endpoints.length)];
-                   axios.post(endpoint ,
-                       {sendPushRequest}
-                   )
-                       .then(async response => {
-                           console.log(response.data);
-                           SaveLog.info("["+getDateTime()+"][CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"]"+stringify(response.data));
-                       })
-                       .catch( async er => {
-                           console.log("Error on sending  to Dispatcher...");
-                           if (er.response) {
-                               // The request was made and the server responded with a status code
-                               // that falls out of the range of 2xx
-                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+stringify(er.response));
-                               console.log(er.response);
+            recipients.forEach(async recipient => {
 
-                           } else if (er.request) {
-                               // The request was made but no response was received
-                               // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                               // http.ClientRequest in node.js
-                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+stringify(er.request));
-                               console.log(er.request);
-                           } else {
-                               // Something happened in setting up the request that triggered an Error
-                               SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+stringify(er.message));
-                               console.log('Error', er.message);
-                           }
+                let sendPushRequest = await buildPushResponse(controlMessageId, cmData, platformData, recipient);
+                let endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+                axios.post(endpoint,
+                    {sendPushRequest}
+                )
+                    .then(async response => {
+                        console.log(response.data);
+                        SaveLog.info("[" + getDateTime() + "][CM:][" + controlMessageId + "][NotId][" + recipient.not_id + "]" + stringify(response.data));
+                    })
+                    .catch(async er => {
+                        console.log("Error on sending  to Dispatcher...");
+                        if (er.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            SaveLog.error("[" + getDateTime() + "] Error on sending  to Dispatcher .. [CM:][" + controlMessageId + "][NotId][" + recipient.not_id + "] " + stringify(er.response));
+                            console.log(er.response);
 
-
-
-                       });
+                        } else if (er.request) {
+                            // The request was made but no response was received
+                            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                            // http.ClientRequest in node.js
+                            SaveLog.error("[" + getDateTime() + "] Error on sending  to Dispatcher .. [CM:][" + controlMessageId + "][NotId][" + recipient.not_id + "] " + stringify(er.request));
+                            console.log(er.request);
+                        } else {
+                            // Something happened in setting up the request that triggered an Error
+                            SaveLog.error("[" + getDateTime() + "] Error on sending  to Dispatcher .. [CM:][" + controlMessageId + "][NotId][" + recipient.not_id + "] " + stringify(er.message));
+                            console.log('Error', er.message);
+                        }
 
 
-               });
+                    });
 
+
+            });
+        }
 
             //await isLast(readyToSend,key);
         });
