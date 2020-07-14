@@ -503,7 +503,9 @@ router.post('/v11',(req,res0,next)=>{
 
 
                     });
-
+                if(recipient == recipients[(recipients.length - 1)]){
+                    isLast(readyToSend,key);      
+                }
 
             });
         }
