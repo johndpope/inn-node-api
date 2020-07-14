@@ -180,7 +180,7 @@ async function getRecipients(controlMessageId, maxInsertId,status) {
             {
                 SaveLog.info("["+getDateTime()+"] ["+row.length+"] Recipients for this CM["+controlMessageId+"]");
                 console.log("["+row.length+"] Recipients for this CM["+controlMessageId+"]");
-                return await handleRecipients(controlMessageId,status);
+                 handleRecipients(controlMessageId,status);
             }
 
 
@@ -281,7 +281,7 @@ async function handleRecipients(controlMessageId,cm_status) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
-            return   ;
+            return;
         } else {
            return  await checkPending(controlMessageId);
         }
