@@ -236,12 +236,12 @@ async function countResponses(controlMessageId) {
 async function checkPending(controlMessageId) {
     SaveLog.info("["+getDateTime()+"] Verifying pending pushes for CMId: " + controlMessageId);
     console.log("Verifying pending pushes for CMId: " + controlMessageId);
-    let pending = await checkPendingPushes(controlMessageId);
+    let pending =  checkPendingPushes(controlMessageId);
 
     if(pending.pendings === 0) {
         SaveLog.info("["+getDateTime()+"] Verifying responses for CMId: " +controlMessageId);
         console.log("Verifying responses for CMId: " +controlMessageId);
-       let  messages = await countResponses(controlMessageId);
+       let  messages =  countResponses(controlMessageId);
         if(messages["mr_total"] >= (0.98*messages["mli_total"])) {
             await updateCMStatus(controlMessageId,5);
             SaveLog.info("["+getDateTime()+"] Completed sending CMId " +controlMessageId+"... Updating to 5");
@@ -283,7 +283,7 @@ async function handleRecipients(controlMessageId,cm_status) {
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
             return;
         } else {
-           return  await checkPending(controlMessageId);
+              checkPending(controlMessageId);
         }
     }
 async function getAppIsProduction(app_id){
