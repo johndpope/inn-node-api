@@ -504,10 +504,7 @@ router.post('/v11',(req,res0,next)=>{
 
 
             });
-        } else
-            {
-                await isLast(readyToSend,key);
-            }
+        }
 
             //await isLast(readyToSend,key);
         });
