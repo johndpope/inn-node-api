@@ -59,7 +59,7 @@ async function getMaxId(controlMessageId) {
                                 FROM message_log_insert 
                                 WHERE control_message_id = ?
                                 AND message_status_id = 0 
-                                ORDER BY id ASC LIMIT 7999,1`, [controlMessageId], async (err, row) => {
+                                ORDER BY id ASC LIMIT 3999,1`, [controlMessageId], async (err, row) => {
             if (err) throw err;
             if (row.length !== 0)
             {
@@ -480,7 +480,7 @@ router.post('/v11',(req,res0,next)=>{
                        })
                        .catch( async er => {
                            console.log("Error on sending  to Dispatcher...");
-                           SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.parse(JSON.stringify(er)));
+                           SaveLog.error("["+getDateTime()+"] Error on sending  to Dispatcher .. [CM:]["+controlMessageId+"][NotId]["+recipient.not_id+"] "+JSON.stringify(er.response.data));
                            console.log(er);
 
                        });
