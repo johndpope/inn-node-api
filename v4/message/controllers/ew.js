@@ -246,14 +246,14 @@ async function checkPending(controlMessageId) {
             await updateCMStatus(controlMessageId,5);
             SaveLog.info("["+getDateTime()+"] Completed sending CMId " +controlMessageId+"... Updating to 5");
             console.log("Completed sending CMId " +controlMessageId+"... Updating to 5");
-            return false;
+            return ;
         } else
         {
-            return false;
+            return ;
         }
 
     } else {
-        return false ;
+        return ;
     }
 }
 async function updateCMStatus(controlMessageId,status) {
@@ -281,7 +281,7 @@ async function handleRecipients(controlMessageId,cm_status) {
            await  updateCMStatus(controlMessageId,9);
            SaveLog.info("["+getDateTime()+"] ERROR: control message " +controlMessageId+ " has no recipients");
             console.log("ERROR: control message " +controlMessageId+ " has no recipients");
-            return  false ;
+            return   ;
         } else {
            return  await checkPending(controlMessageId);
         }
