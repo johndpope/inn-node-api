@@ -8,8 +8,8 @@ const {parse, stringify} = require('flatted');
 
 const endpoints = [
     'http://ec2-54-166-246-71.compute-1.amazonaws.com:8080/api/message/',
-    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
     'https://nice-cuboid-tellurium.glitch.me/api/message/',
+    'http://ec2-3-95-151-234.compute-1.amazonaws.com:8080/api/message/',
     'https://time-wry-dinghy.glitch.me/api/message/'
 ];
 
