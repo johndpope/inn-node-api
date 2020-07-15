@@ -1119,7 +1119,7 @@ let silentPush =(req,res) => {
             if(response.data.success===1)
             {    p_status_id = response.data.success;
                 p_status_details="[Silent Push]: Mensagem entregue ao provedor FCM  com sucesso.";
-                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                 saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 //console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1141,7 +1141,7 @@ let silentPush =(req,res) => {
                         }
                 })
                 } else{
-                    const sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                      saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                     res.status(200).json({
                         SendPushResponse:{
                             NotID:p_id,
@@ -1156,7 +1156,7 @@ let silentPush =(req,res) => {
             {
                 p_status_id = '9';
                 p_status_details='[Silent Push]: '+response.data.results[0]["error"];
-                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 //console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1169,7 +1169,7 @@ let silentPush =(req,res) => {
             } else {
                 p_status_id = '99';
                 p_status_details='[Silent Push]: '+response;
-                const  sql = await  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
+                  saveResponses(p_id, p_subscriber_id, "", "", p_platform_id, p_status_id, p_status_details, p_control_message_id);
                 //console.log('['+getDateTime()+'] Row Inserted (after saving)--- '+'CM:['+p_control_message_id+'] ---'+' NotID:['+p_id+']');
                 res.status(200).json({
                     SendPushResponse:{
@@ -1254,12 +1254,12 @@ async function handleSMS(channel,phone,not_id,subscriber_id,p_status_details,p_c
     axios.post(apiUrl).
     then(async (resp)=>{
         console.log("Successfully sent SMS");
-        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
+         saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS SENT SUCCESSFULLY][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
         return resp;
     }).
     catch(async (resp)=>{
         console.log("Error while sending SMS... Details : "+resp+"[Details]["+apiUrl+"]");
-        const sql = await saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
+         saveResponses(not_id,subscriber_id,channel.custom_title,channel.custom_body,channel.provider_data.channel_provider_id,3,p_status_details+"[SMS FAILED][WITH PROVIDER : "+channel.provider_data.channel_provider_id+"]",p_control_message_id);
         return resp;
     })
 }
