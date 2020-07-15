@@ -249,7 +249,7 @@ async function checkPending(controlMessageId) {
             SaveLog.info("["+getDateTime()+"] Completed sending CMId " +controlMessageId+"... Updating to 5");
             console.log("Completed sending CMId " +controlMessageId+"... Updating to 5");
         }
-}
+    }
 }
 async function updateCMStatus(controlMessageId,status) {
     const sql = await new Promise((res,rej)=>{
